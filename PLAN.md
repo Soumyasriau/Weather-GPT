@@ -134,7 +134,8 @@ Done when: a request to `/api/anything` in dev returns a proxy error, not Vite's
 
 `src/App.svelte`:
 - Column flex: header, alert banner slot, message list, composer.
-- Max width 430 px, centred. Height `100dvh`.
+- Full bleed at any width. Height `100dvh`. Content wrapped in `.inner`, capped at
+  `--measure: 720px` and centred, so wide screens stay readable.
 
 Done when: at 390 px viewport the three regions are visible with a coloured placeholder each.
 

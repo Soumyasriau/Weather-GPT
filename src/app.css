@@ -80,7 +80,9 @@
   --fs-xl: 20px;
 
   /* layout */
-  --app-max: 430px;
+  /* The app fills the viewport at any width. --measure only caps how wide the
+     reading column gets, so text never stretches across a desktop monitor. */
+  --measure: 720px;
   --header-h: 52px;
 
   font-family: var(--sans);

@@ -6,12 +6,14 @@
 
 <div class="app">
   <header>
-    <span class="brand">WeatherGPT</span>
-    <span class="chips">
-      <span class="chip">{chat.place.name}</span>
-      <span class="chip">{chat.lang.toUpperCase()}</span>
-      <span class="chip persona">{chat.persona}</span>
-    </span>
+    <div class="inner bar">
+      <span class="brand">WeatherGPT</span>
+      <span class="chips">
+        <span class="chip">{chat.place.name}</span>
+        <span class="chip">{chat.lang.toUpperCase()}</span>
+        <span class="chip persona">{chat.persona}</span>
+      </span>
+    </div>
   </header>
 
   <div class="banner-slot">
@@ -21,14 +23,15 @@
   <MessageList messages={chat.messages} />
 
   <footer>
-    <Composer onsend={(text) => chat.send(text)} busy={chat.busy} />
+    <div class="inner">
+      <Composer onsend={(text) => chat.send(text)} busy={chat.busy} />
+    </div>
   </footer>
 </div>
 
 <style>
   .app {
     width: 100%;
-    max-width: var(--app-max);
     height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -36,16 +39,26 @@
     overflow: hidden;
   }
 
+  /* Chrome runs full-bleed; only the content is capped. */
+  .inner {
+    width: 100%;
+    max-width: var(--measure);
+    margin: 0 auto;
+  }
+
   header {
     flex: 0 0 auto;
     min-height: var(--header-h);
+    padding: var(--s2) var(--s4);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--s2);
-    padding: var(--s2) var(--s4);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
   }
 
   .brand {

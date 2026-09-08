@@ -56,13 +56,14 @@
 </script>
 
 <div class="list" bind:this={scroller}>
-  {#if messages.length === 0}
+  <div class="inner">
+    {#if messages.length === 0}
     <div class="empty">
       <p class="title">Ask about the weather.</p>
       <p class="hint">
         In your own language, typed or spoken. You get an action, not just a forecast.
       </p>
-      {#if visible.length > 0}
+        {#if visible.length > 0}
         <div class="suggest">
           <p class="suggest-title">Try a question</p>
           <div class="chips">
@@ -76,10 +77,11 @@
       {/if}
     </div>
   {:else}
-    {#each messages as message (message.id)}
-      <MessageBubble {message} />
-    {/each}
-  {/if}
+      {#each messages as message (message.id)}
+        <MessageBubble {message} />
+      {/each}
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -92,8 +94,18 @@
     background: var(--bg);
   }
 
-  .empty {
+  /* Scrolls full-bleed, content capped so a wide screen stays readable. */
+  .inner {
+    width: 100%;
+    max-width: var(--measure);
+    margin: 0 auto;
     min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty {
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
