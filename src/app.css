@@ -1,0 +1,134 @@
+/* WeatherGPT design tokens.
+   Palette: Sky & Earth. Deep blues for trust and clarity,
+   warm sand for ground-level decisions, greens for growth.
+   Light, high contrast: users stand in sunlight. */
+
+:root {
+  /* Sky & Earth palette */
+  --primary: #0a4da6; /* Deep sky - actions, trust */
+  --primary-soft: #e0eaf7; /* Primary tint for backgrounds */
+  --primary-text: #083a7d; /* Primary for text links */
+
+  --secondary: #475569; /* Slate - metadata, secondary */
+  --secondary-soft: #f1f5f9; /* Secondary tint */
+
+  --tertiary: #d4a574; /* Warm sand - highlights, farmer accent */
+  --tertiary-soft: #faf3ec; /* Tertiary tint */
+
+  /* surfaces */
+  --bg: #f0f4f8; /* Blue-grey tint, easier on eyes in sun */
+  --surface: #ffffff;
+  --surface-sunken: #e2e8f0;
+  --border: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  /* text */
+  --text: #0f172a; /* Near-black with cool undertone */
+  --text-muted: #475569;
+  --text-faint: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Persona accents */
+  --farmer: #2d6a4f; /* Earth green - growth, land */
+  --farmer-soft: #e8f5e9;
+  --pilot: #1e3a8a; /* Aviation blue - charts, authority */
+  --pilot-soft: #e0e7ff;
+  --disaster: #991b1b; /* Alert crimson - emergency */
+  --disaster-soft: #fee2e2;
+  --researcher: #4338ca; /* Steel indigo - data, academia */
+  --researcher-soft: #e0e7ff;
+
+  /* IMD alert colours. Yellow uses dark text: pure yellow on white is unreadable. */
+  --alert-red: #d7191c;
+  --alert-red-bg: #fceaea;
+  --alert-orange: #ff9900;
+  --alert-orange-bg: #fff3e0;
+  --alert-yellow: #ffd400;
+  --alert-yellow-bg: #fffbe0;
+  --alert-yellow-text: #4a3c00;
+  --alert-green: #00a65a;
+  --alert-green-bg: #e6f7ee;
+
+  /* Legacy accent alias (remove after refactor) */
+  --accent: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --accent-text: var(--primary-text);
+
+  /* spacing: 4px scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+
+  /* radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  /* type */
+  --sans: system-ui, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari',
+    'Noto Sans Tamil', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 20px;
+
+  /* layout */
+  --app-max: 430px;
+  --header-h: 52px;
+
+  font-family: var(--sans);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--text);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+}
+
+/* Body never scrolls. Only the message list does. */
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
