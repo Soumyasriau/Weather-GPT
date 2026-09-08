@@ -1,60 +1,50 @@
-/* WeatherGPT design tokens.
-   Palette: Sky & Earth. Deep blues for trust and clarity,
-   warm sand for ground-level decisions, greens for growth.
-   Light, high contrast: users stand in sunlight. */
+/* WeatherGPT design tokens. */
 
 :root {
-  /* Sky & Earth palette */
-  --primary: #0a4da6; /* Deep sky - actions, trust */
-  --primary-soft: #e0eaf7; /* Primary tint for backgrounds */
-  --primary-text: #083a7d; /* Primary for text links */
+  --primary: #7fb2e5;
+  --primary-soft: rgba(127, 178, 229, 0.15);
+  --primary-text: #bcdcff;
 
-  --secondary: #475569; /* Slate - metadata, secondary */
-  --secondary-soft: #f1f5f9; /* Secondary tint */
+  --secondary: #9aa3c4;
+  --secondary-soft: rgba(255, 255, 255, 0.06);
 
-  --tertiary: #d4a574; /* Warm sand - highlights, farmer accent */
-  --tertiary-soft: #faf3ec; /* Tertiary tint */
+  --tertiary: #f2a65a;
+  --tertiary-soft: rgba(242, 166, 90, 0.12);
 
-  /* surfaces */
-  --bg: #f0f4f8; /* Blue-grey tint, easier on eyes in sun */
-  --surface: #ffffff;
-  --surface-sunken: #e2e8f0;
-  --border: #cbd5e1;
-  --border-strong: #94a3b8;
+  --bg: #0b0e1c;
+  --surface: #1f2748;
+  --surface-sunken: #12172b;
+  --border: rgba(232, 235, 245, 0.1);
+  --border-strong: #7c86a7;
 
-  /* text */
-  --text: #0f172a; /* Near-black with cool undertone */
-  --text-muted: #475569;
-  --text-faint: #94a3b8;
-  --text-inverse: #ffffff;
+  --text: #e8ebf5;
+  --text-muted: #b0b8d2;
+  --text-faint: #9aa3c4;
+  --text-inverse: #0b0e1c;
 
-  /* Persona accents */
-  --farmer: #2d6a4f; /* Earth green - growth, land */
-  --farmer-soft: #e8f5e9;
-  --pilot: #1e3a8a; /* Aviation blue - charts, authority */
-  --pilot-soft: #e0e7ff;
-  --disaster: #991b1b; /* Alert crimson - emergency */
-  --disaster-soft: #fee2e2;
-  --researcher: #4338ca; /* Steel indigo - data, academia */
-  --researcher-soft: #e0e7ff;
+  --farmer: #a7d69a;
+  --farmer-soft: rgba(167, 214, 154, 0.12);
+  --pilot: #9fc7ee;
+  --pilot-soft: rgba(159, 199, 238, 0.12);
+  --disaster: #ff8a86;
+  --disaster-soft: rgba(255, 138, 134, 0.12);
+  --researcher: #c4b5fd;
+  --researcher-soft: rgba(196, 181, 253, 0.12);
 
-  /* IMD alert colours. Yellow uses dark text: pure yellow on white is unreadable. */
   --alert-red: #d7191c;
-  --alert-red-bg: #fceaea;
+  --alert-red-bg: rgba(215, 25, 28, 0.15);
   --alert-orange: #ff9900;
-  --alert-orange-bg: #fff3e0;
+  --alert-orange-bg: rgba(255, 153, 0, 0.14);
   --alert-yellow: #ffd400;
-  --alert-yellow-bg: #fffbe0;
-  --alert-yellow-text: #4a3c00;
+  --alert-yellow-bg: rgba(255, 212, 0, 0.14);
+  --alert-yellow-text: #ffe68a;
   --alert-green: #00a65a;
   --alert-green-bg: #e6f7ee;
 
-  /* Legacy accent alias (remove after refactor) */
   --accent: var(--primary);
   --accent-soft: var(--primary-soft);
   --accent-text: var(--primary-text);
 
-  /* spacing: 4px scale */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -63,15 +53,12 @@
   --s6: 24px;
   --s8: 32px;
 
-  /* radius */
   --r-sm: 6px;
   --r-md: 10px;
   --r-lg: 14px;
   --r-pill: 999px;
 
-  /* type */
-  --sans: system-ui, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari',
-    'Noto Sans Tamil', sans-serif;
+  --sans: system-ui, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', sans-serif;
   --mono: ui-monospace, 'SF Mono', Consolas, monospace;
   --fs-xs: 12px;
   --fs-sm: 13px;
@@ -79,17 +66,14 @@
   --fs-lg: 17px;
   --fs-xl: 20px;
 
-  /* layout */
-  /* The app fills the viewport at any width. --measure only caps how wide the
-     reading column gets, so text never stretches across a desktop monitor. */
-  --measure: 720px;
+  --measure: 760px;
   --header-h: 52px;
 
   font-family: var(--sans);
   font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text);
-  color-scheme: light;
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -101,11 +85,13 @@
 html,
 body {
   margin: 0;
-  height: 100%;
-  background: var(--bg);
+  min-height: 100%;
+  background:
+    radial-gradient(900px 420px at 12% -8%, rgba(127, 178, 229, 0.18), transparent 60%),
+    radial-gradient(800px 400px at 100% 0%, rgba(242, 166, 90, 0.12), transparent 58%),
+    linear-gradient(180deg, #12172b 0%, var(--bg) 100%);
 }
 
-/* Body never scrolls. Only the message list does. */
 body {
   overflow: hidden;
   overscroll-behavior: none;

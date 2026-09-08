@@ -7,6 +7,18 @@
   const isPilot = $derived(response.persona === 'pilot')
   const isFarmer = $derived(response.answer.parts !== undefined)
   const isResearcher = $derived(response.persona === 'researcher' && response.data !== undefined)
+
+  function openWeatherDetails(): void {
+    const params = new URLSearchParams({
+      city: response.place?.name ?? 'Pune',
+      summary: response.answer.text,
+      persona: response.persona,
+      intent: response.intent,
+      weather: response.answer.parts ? 'detailed' : 'overview',
+    })
+
+    window.open(`/weather-detail.html?${params.toString()}`, '_blank', 'noopener,noreferrer')
+  }
 </script>
 
 {#if isFarmer && response.answer.parts}
@@ -36,6 +48,8 @@
 {:else}
   <p class="text" class:mono={isPilot}>{response.answer.text}</p>
 {/if}
+
+<button type="button" class="details-button" onclick={openWeatherDetails}>Open weather details</button>
 
 <style>
   .text {
@@ -102,5 +116,16 @@
   .value {
     color: var(--text);
     line-height: 1.45;
+  }
+
+  .details-button {
+    margin-top: 12px;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary-text);
+    border-radius: var(--r-pill);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
   }
 </style>

@@ -91,7 +91,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: var(--s4);
-    background: var(--bg);
+    background: transparent;
   }
 
   /* Scrolls full-bleed, content capped so a wide screen stays readable. */
@@ -116,7 +116,8 @@
 
   .title {
     margin: 0 0 var(--s2);
-    font-size: var(--fs-xl);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 22px;
     color: var(--text);
   }
 
@@ -148,7 +149,7 @@
     padding: var(--s3) var(--s4);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
-    background: var(--surface);
+    background: rgba(255, 255, 255, 0.02);
     color: var(--text);
     text-align: left;
     font-size: var(--fs-sm);
@@ -156,5 +157,10 @@
 
   .chip:disabled {
     opacity: 0.5;
+  }
+
+  .chip:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
   }
 </style>

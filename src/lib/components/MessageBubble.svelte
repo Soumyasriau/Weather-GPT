@@ -40,7 +40,7 @@
   .row {
     display: flex;
     justify-content: flex-start;
-    margin-bottom: var(--s3);
+    margin-bottom: 12px;
   }
 
   .row.mine {
@@ -49,17 +49,18 @@
 
   .bubble {
     max-width: 88%;
-    padding: var(--s3) var(--s4);
-    border-radius: var(--r-lg);
+    padding: 16px 18px;
+    border-radius: 22px 22px 22px 8px;
     background: var(--surface);
     border: 1px solid var(--border);
+    box-shadow: none;
   }
 
   .bubble.mine {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: linear-gradient(135deg, #2a3560, #22294a);
+    border-color: transparent;
     color: var(--text-inverse);
-    border-bottom-right-radius: var(--r-sm);
+    border-radius: 20px 20px 4px 20px;
   }
 
   .text {
@@ -82,7 +83,7 @@
   }
 
   .bubble.mine .meta {
-    color: var(--primary-soft);
+    color: rgba(255, 255, 255, 0.8);
   }
 
   .badge {
@@ -95,9 +96,9 @@
   }
 
   .bubble.mine .badge {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.12);
     color: var(--text-inverse);
-    border-color: var(--primary-soft);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .typing {

@@ -139,3 +139,20 @@ export interface ChatMessage {
   demo?: boolean
   error?: string
 }
+
+/**
+ * A saved conversation, spec section 12. Each chat freezes its own persona,
+ * language, script, and place so reopening an old chat restores the context
+ * it was asked in, not whatever the user has selected right now.
+ */
+export interface Chat {
+  id: string
+  title: string
+  createdAt: number
+  updatedAt: number
+  lang: Lang
+  script: Script
+  persona: Persona
+  place: Place
+  messages: ChatMessage[]
+}

@@ -1,127 +1,244 @@
 /**
  * All app state. One file, Svelte 5 runes, no store library.
  *
- * Persisted to localStorage per spec section 10: language, persona, place, and the
- * last 50 messages. Everything else is per-session.
+ * Spec section 12 update: chats are now a list, each with its own messages,
+ * persisted to IndexedDB (see db.ts) instead of a single flat message array
+ * in localStorage. `lang` / `script` / `persona` / `place` read and write
+ * through to the active chat, so existing call sites (`chat.lang`,
+ * `chat.persona`, `chat.place.name`, `chat.send(...)`) keep working — only
+ * the storage underneath changed.
+ *
+ * localStorage is kept for exactly one thing: which chat id was last open,
+ * so a reload doesn't drop the user back on chat #1.
  */
 
-import type { ChatMessage, Lang, Persona, Place, Script } from './types'
+import type { Chat, ChatMessage, Lang, Persona, Place, Script } from './types'
 import { sendQuery } from './api.ts'
 import { PLACES, placeByName } from './fixtures.ts'
+import { dbListChats, dbSaveChat, dbDeleteChat } from './db.ts'
 
-const K = {
-  lang: 'wgpt.lang',
-  script: 'wgpt.script',
-  persona: 'wgpt.persona',
-  place: 'wgpt.place',
-  messages: 'wgpt.messages',
-} as const
-
+const LAST_OPEN_KEY = 'wgpt.lastChatId'
+const LEGACY_MESSAGES_KEY = 'wgpt.messages' // pre-section-12 flat history, migrated once
 const MAX_MESSAGES = 50
 
-function read<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw === null ? fallback : (JSON.parse(raw) as T)
-  } catch {
-    // Corrupt entry or storage disabled. Falling back beats crashing on load.
-    return fallback
-  }
-}
-
-function write(key: string, value: unknown): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // Private mode or quota. Losing persistence is not worth breaking the chat.
-  }
-}
-
-function newId(): string {
+function newId(prefix: string): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
-    : `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+    : `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function defaultPlace(): Place {
+  return placeByName('Pune') ?? PLACES[0]
+}
+
+function blankChat(overrides?: Partial<Pick<Chat, 'lang' | 'script' | 'persona' | 'place'>>): Chat {
+  const now = Date.now()
+  return {
+    id: newId('chat'),
+    title: 'New chat',
+    createdAt: now,
+    updatedAt: now,
+    lang: overrides?.lang ?? 'en',
+    script: overrides?.script ?? 'native',
+    persona: overrides?.persona ?? 'farmer',
+    place: overrides?.place ?? defaultPlace(),
+    messages: [],
+  }
+}
+
+/** One-time migration from the pre-multi-chat flat message array, if present. */
+function migrateLegacyMessages(): Chat | null {
+  try {
+    const raw = localStorage.getItem(LEGACY_MESSAGES_KEY)
+    if (!raw) return null
+    const messages = JSON.parse(raw) as ChatMessage[]
+    if (!Array.isArray(messages) || messages.length === 0) return null
+
+    const chat = blankChat()
+    chat.messages = messages
+    chat.title = messages.find((m) => m.role === 'user')?.text.slice(0, 40) || 'Earlier chat'
+    return chat
+  } catch {
+    return null
+  } finally {
+    localStorage.removeItem(LEGACY_MESSAGES_KEY)
+  }
 }
 
 class ChatState {
-  messages = $state<ChatMessage[]>(read<ChatMessage[]>(K.messages, []))
-  lang = $state<Lang>(read<Lang>(K.lang, 'en'))
-  script = $state<Script>(read<Script>(K.script, 'native'))
-  persona = $state<Persona>(read<Persona>(K.persona, 'farmer'))
-  place = $state<Place>(read<Place>(K.place, placeByName('Pune') ?? PLACES[0]))
+  chats = $state<Chat[]>([])
+  activeChatId = $state<string | null>(null)
+  sidebarOpen = $state(true)
+  ready = $state(false)
   busy = $state(false)
 
+  get activeChat(): Chat | undefined {
+    return this.chats.find((c) => c.id === this.activeChatId)
+  }
+
+  get messages(): ChatMessage[] {
+    return this.activeChat?.messages ?? []
+  }
+
+  get lang(): Lang {
+    return this.activeChat?.lang ?? 'en'
+  }
+
+  get script(): Script {
+    return this.activeChat?.script ?? 'native'
+  }
+
+  get persona(): Persona {
+    return this.activeChat?.persona ?? 'farmer'
+  }
+
+  get place(): Place {
+    return this.activeChat?.place ?? defaultPlace()
+  }
+
+  /** Loads saved chats from IndexedDB. Call once, from App.svelte's onMount. */
+  async init(): Promise<void> {
+    let chats = await dbListChats()
+
+    if (chats.length === 0) {
+      const migrated = migrateLegacyMessages()
+      const first = migrated ?? blankChat()
+      chats = [first]
+      await dbSaveChat(first)
+    }
+
+    this.chats = chats
+
+    const lastOpen = localStorage.getItem(LAST_OPEN_KEY)
+    this.activeChatId = chats.some((c) => c.id === lastOpen) ? lastOpen : chats[0].id
+
+    this.ready = true
+  }
+
+  async newChat(): Promise<void> {
+    // A fresh chat inherits the current context (persona/lang/place) so the
+    // user doesn't have to re-pick them every time they start a new thread.
+    const seed = this.activeChat
+    const chat = blankChat(
+      seed ? { lang: seed.lang, script: seed.script, persona: seed.persona, place: seed.place } : undefined,
+    )
+    this.chats = [chat, ...this.chats]
+    this.activeChatId = chat.id
+    localStorage.setItem(LAST_OPEN_KEY, chat.id)
+    await dbSaveChat(chat)
+  }
+
+  selectChat(id: string): void {
+    if (!this.chats.some((c) => c.id === id)) return
+    this.activeChatId = id
+    localStorage.setItem(LAST_OPEN_KEY, id)
+  }
+
+  async deleteChat(id: string): Promise<void> {
+    this.chats = this.chats.filter((c) => c.id !== id)
+    await dbDeleteChat(id)
+
+    if (this.activeChatId !== id) return
+
+    if (this.chats.length === 0) {
+      await this.newChat()
+    } else {
+      this.activeChatId = this.chats[0].id
+      localStorage.setItem(LAST_OPEN_KEY, this.chats[0].id)
+    }
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen
+  }
+
   setLang(lang: Lang): void {
-    this.lang = lang
-    write(K.lang, lang)
+    const c = this.activeChat
+    if (!c) return
+    c.lang = lang
+    this.touch(c)
   }
 
   setScript(script: Script): void {
-    this.script = script
-    write(K.script, script)
+    const c = this.activeChat
+    if (!c) return
+    c.script = script
+    this.touch(c)
   }
 
   setPersona(persona: Persona): void {
-    this.persona = persona
-    write(K.persona, persona)
+    const c = this.activeChat
+    if (!c) return
+    c.persona = persona
+    this.touch(c)
   }
 
   setPlace(place: Place): void {
-    this.place = place
-    write(K.place, place)
+    const c = this.activeChat
+    if (!c) return
+    c.place = place
+    this.touch(c)
   }
 
   clear(): void {
-    this.messages = []
-    write(K.messages, this.messages)
+    const c = this.activeChat
+    if (!c) return
+    c.messages = []
+    this.touch(c)
   }
 
   async send(text: string): Promise<void> {
     const query = text.trim()
-    if (query === '' || this.busy) return
+    const c = this.activeChat
+    if (query === '' || this.busy || !c) return
 
-    const user: ChatMessage = { id: newId(), role: 'user', text: query, ts: Date.now() }
-    const pending: ChatMessage = { id: newId(), role: 'assistant', text: '', ts: Date.now() }
+    const user: ChatMessage = { id: newId('m'), role: 'user', text: query, ts: Date.now() }
+    const pending: ChatMessage = { id: newId('m'), role: 'assistant', text: '', ts: Date.now() }
 
-    this.messages = [...this.messages, user, pending]
+    c.messages = [...c.messages, user, pending]
+    if (c.messages.length === 2 && c.title === 'New chat') {
+      c.title = query.slice(0, 40)
+    }
     this.busy = true
-    const index = this.messages.length - 1
+    const index = c.messages.length - 1
 
     try {
       const { response, demo } = await sendQuery({
         query,
-        lang: this.lang,
-        script: this.script,
-        persona: this.persona,
-        place: this.place,
+        lang: c.lang,
+        script: c.script,
+        persona: c.persona,
+        place: c.place,
       })
 
       // Replace, do not mutate: the array is a $state proxy and replacement is
       // the shape Svelte 5 reliably tracks.
-      this.messages[index] = {
+      c.messages[index] = {
         ...pending,
         text: response.answer.text,
         response,
         demo,
       }
     } catch (err) {
-      this.messages[index] = {
+      c.messages[index] = {
         ...pending,
         text: 'Could not reach the weather service.',
         error: err instanceof Error ? err.message : 'unknown error',
       }
     } finally {
       this.busy = false
-      this.persist()
+      this.touch(c)
     }
   }
 
-  private persist(): void {
-    // Cap before writing, not after: a long session must not grow the key forever.
-    if (this.messages.length > MAX_MESSAGES) {
-      this.messages = this.messages.slice(-MAX_MESSAGES)
+  /** Bumps updatedAt, re-sorts the sidebar, and persists to IndexedDB. */
+  private touch(c: Chat): void {
+    if (c.messages.length > MAX_MESSAGES) {
+      c.messages = c.messages.slice(-MAX_MESSAGES)
     }
-    write(K.messages, this.messages)
+    c.updatedAt = Date.now()
+    this.chats = [c, ...this.chats.filter((x) => x.id !== c.id)]
+    void dbSaveChat(c)
   }
 }
 
