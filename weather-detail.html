@@ -793,8 +793,1391 @@ const WC_TEXT_I18N = {
     51:'తేలికపాటి జల్లులు',53:'జల్లులు',55:'దట్టమైన జల్లులు',61:'తేలికపాటి వర్షం',63:'వర్షం',65:'భారీ వర్షం',
     71:'తేలికపాటి మంచు కురియడం',73:'మంచు కురియడం',75:'భారీ హిమపాతం',80:'జల్లులు',81:'నిరంతర జల్లులు',82:'తీవ్రమైన జల్లులు',
     95:'ఉరుములతో వర్షం',96:'వడగళ్లతో తుఫాను' },
-  ta: { 0:'தெளிவான வானம்',1:'பெரும்பாலும் தெளிவு',2:'ஓரளவு மேகமூட்டம்',3:'முழு మేఘావృதం',45:'மூடுபனி',48:'உறைபனி மூடுபனி',
+  ta: { 0:'தெளிவான வானம்',1:'பெரும்பாலும் தெளிவு',2:'ஓரளவு மேகமூட்டம்',3:'முழு மேகமூட்டம்',45:'மூடுபனி',48:'உறைபனி மூடுபனி',
     51:'லேசான தூறல்',53:'தூறல்',55:'அடர்த்தியான தூறல்',61:'லேசான மழை',63:'மழை',65:'கனமழை',
     71:'லேசான பனிப்பொழிவு',73:'பனிப்பொழிவு',75:'கனமான பனிப்பொழிவு',80:'சாரல் மழை',81:'தொடர் சாரல் மழை',82:'கடுமையான சாரல் மழை',
     95:'இடி மின்னலுடன் மழை',96:'ஆலங்கட்டி புயல்' }
 };
+
+/* Reply-sentence templates for the rule-based (no Gemini key) fallback. */
+const REPLY_I18N = {
+  en: {
+    currentIntro:(place,temp,cond)=>`Right now in ${place}, it's ${temp} and ${cond}`,
+    feelsMore:(temp)=>`, feeling more like ${temp}. `, periodEnd:'. ',
+    humidityWind:(h,w)=>`Humidity's at ${h}%, with wind around ${w}.`,
+    rainSoon:(p)=>` There's roughly a ${p}% chance of rain in the next hour or so.`,
+    hourlyNoAlign:(place)=>`I've got hourly data for ${place}, but couldn't line it up with right now — tap the view below for the full breakdown.`,
+    hourlyIntro:(place,minT,maxT,cond)=>`Over the next few hours in ${place}, expect temps between ${minT} and ${maxT}, staying mostly ${cond}.`,
+    hourlyRainAt:(hour,p)=>` Rain's most likely around ${hour}, with about a ${p}% chance.`,
+    hourlyRainUnlikely:' Rain looks unlikely for now.',
+    dailyIntro:(place,maxT,minT,cond)=>`This week in ${place}, today tops out around ${maxT} with a low of ${minT}, staying mostly ${cond}.`,
+    dailyWarmest:(day,temp)=>` The warmest day looks like ${day}, near ${temp}.`,
+    dailyRainDays:(days)=>` Keep an eye out for rain ${days}.`,
+    dailyNoRain:' No significant rain expected over the next few days.',
+    today:'today',
+    askLocation:"Sure — which location would you like the weather for?",
+    notFound:(loc)=>`I couldn't find a place called "${loc}". Could you check the spelling, or add a state or country?`,
+    serviceError:"I had trouble reaching the weather service just now — mind trying again in a moment?",
+    greeting:"Hey! Ask me about the weather anywhere — like \"what's it like in Chennai today?\"",
+    thanks:"Anytime! Let me know if you want another forecast.",
+    fallback:"I couldn't quite place that as a weather question — try something like \"is it going to rain in Goa tomorrow?\", or add a Gemini key in settings for more natural understanding.",
+    verdictRain:(n)=>`Rain looks likely for ${n}, so plan accordingly.`,
+    verdictClear:(n)=>`Looks clear for ${n} — you should be fine.`,
+    tipRain:(n)=>`There's a decent chance of rain, so keep that in mind for ${n}.`,
+    tipClear:(n)=>`Conditions look good for ${n}.`
+  },
+  hi: {
+    currentIntro:(place,temp,cond)=>`अभी ${place} में ${temp} है और ${cond}`,
+    feelsMore:(temp)=>`, लेकिन महसूस ${temp} जैसा होता है। `, periodEnd:'। ',
+    humidityWind:(h,w)=>`नमी ${h}% है, हवा की गति करीब ${w} है।`,
+    rainSoon:(p)=>` अगले एक घंटे में बारिश की करीब ${p}% संभावना है।`,
+    hourlyNoAlign:(place)=>`मेरे पास ${place} का घंटेवार डेटा है, पर अभी के समय से मिलान नहीं हो पाया — नीचे दिए व्यू में पूरा विवरण देखें।`,
+    hourlyIntro:(place,minT,maxT,cond)=>`अगले कुछ घंटों में ${place} का तापमान ${minT} से ${maxT} के बीच रहेगा, ज़्यादातर ${cond}।`,
+    hourlyRainAt:(hour,p)=>` बारिश की सबसे ज़्यादा संभावना करीब ${hour} बजे है, लगभग ${p}% मौका।`,
+    hourlyRainUnlikely:' फ़िलहाल बारिश की संभावना कम लग रही है।',
+    dailyIntro:(place,maxT,minT,cond)=>`इस हफ्ते ${place} में आज का अधिकतम तापमान करीब ${maxT} और न्यूनतम ${minT} रहेगा, ज़्यादातर ${cond}।`,
+    dailyWarmest:(day,temp)=>` सबसे गर्म दिन ${day} लग रहा है, करीब ${temp}।`,
+    dailyRainDays:(days)=>` ${days} को बारिश पर नज़र रखें।`,
+    dailyNoRain:' अगले कुछ दिनों में कोई खास बारिश की उम्मीद नहीं है।',
+    today:'आज',
+    askLocation:"ज़रूर — किस जगह का मौसम बताऊं?",
+    notFound:(loc)=>`"${loc}" नाम की कोई जगह नहीं मिली। कृपया स्पेलिंग जांचें, या राज्य/देश जोड़ें।`,
+    serviceError:"अभी मौसम सेवा तक पहुंचने में दिक्कत हुई — कृपया थोड़ी देर में फिर कोशिश करें।",
+    greeting:"नमस्ते! मुझसे कहीं भी मौसम के बारे में पूछें — जैसे \"चेन्नई में आज मौसम कैसा है?\"",
+    thanks:"कभी भी! अगर कोई और पूर्वानुमान चाहिए तो बताएं।",
+    fallback:"यह मुझे मौसम से जुड़ा सवाल नहीं लगा — कुछ ऐसा पूछें: \"क्या कल गोवा में बारिश होगी?\", या ज़्यादा स्वाभाविक समझ के लिए सेटिंग्स में Gemini कुंजी जोड़ें।",
+    verdictRain:(n)=>`${n} के लिए आज बारिश की संभावना है, उसी हिसाब से योजना बनाएं।`,
+    verdictClear:(n)=>`${n} के लिए मौसम साफ़ लग रहा है — बेफिक्र होकर जाएं।`,
+    tipRain:(n)=>`बारिश की अच्छी-खासी संभावना है, इसे ${n} के समय ध्यान में रखें।`,
+    tipClear:(n)=>`${n} के लिए हालात ठीक लग रहे हैं।`
+  },
+  te: {
+    currentIntro:(place,temp,cond)=>`ప్రస్తుతం ${place}లో ${temp} ఉంది, ${cond}`,
+    feelsMore:(temp)=>`, కానీ అనుభూతి ${temp} లాగా ఉంటుంది. `, periodEnd:'. ',
+    humidityWind:(h,w)=>`తేమ ${h}% గా ఉంది, గాలి వేగం సుమారు ${w}.`,
+    rainSoon:(p)=>` వచ్చే గంటలో వర్షం వచ్చే అవకాశం సుమారు ${p}%.`,
+    hourlyNoAlign:(place)=>`${place} కోసం గంట గంటకు డేటా ఉంది, కానీ ప్రస్తుత సమయంతో సరిపోల్చలేకపోయాను — కింద ఉన్న వీక్షణలో పూర్తి వివరాలు చూడండి.`,
+    hourlyIntro:(place,minT,maxT,cond)=>`రాబోయే కొన్ని గంటల్లో ${place}లో ఉష్ణోగ్రత ${minT} నుండి ${maxT} మధ్య ఉంటుంది, ఎక్కువగా ${cond}.`,
+    hourlyRainAt:(hour,p)=>` వర్షం ${hour} సమయంలో వచ్చే అవకాశం ఎక్కువ, సుమారు ${p}% చాన్స్.`,
+    hourlyRainUnlikely:' ప్రస్తుతానికి వర్షం వచ్చే అవకాశం తక్కువగా కనిపిస్తోంది.',
+    dailyIntro:(place,maxT,minT,cond)=>`ఈ వారం ${place}లో ఈరోజు గరిష్ట ఉష్ణోగ్రత సుమారు ${maxT}, కనిష్ట ${minT} ఉంటుంది, ఎక్కువగా ${cond}.`,
+    dailyWarmest:(day,temp)=>` అత్యంత వేడిగా ఉండే రోజు ${day} అనిపిస్తోంది, సుమారు ${temp}.`,
+    dailyRainDays:(days)=>` ${days} రోజుల్లో వర్షం రావచ్చు, గమనించండి.`,
+    dailyNoRain:' వచ్చే కొద్ది రోజుల్లో పెద్దగా వర్షం అవకాశం లేదు.',
+    today:'ఈరోజు',
+    askLocation:"తప్పకుండా — ఏ ప్రదేశానికి వాతావరణం చెప్పాలి?",
+    notFound:(loc)=>`"${loc}" అనే ప్రదేశం కనుగొనబడలేదు. దయచేసి స్పెల్లింగ్ చెక్ చేయండి, లేదా రాష్ట్రం/దేశం జోడించండి.`,
+    serviceError:"వాతావరణ సేవను చేరుకోవడంలో ఇబ్బంది వచ్చింది — దయచేసి కొద్ది సేపటి తర్వాత మళ్ళీ ప్రయత్నించండి.",
+    greeting:"హాయ్! ఎక్కడైనా వాతావరణం గురించి అడగండి — ఉదా. \"చెన్నైలో ఈరోజు వాతావరణం ఎలా ఉంది?\"",
+    thanks:"ఎప్పుడైనా అడగండి! మరో పూర్వానుమానం కావాలంటే చెప్పండి.",
+    fallback:"ఇది వాతావరణ ప్రశ్నలా అనిపించలేదు — ఇలా అడగండి: \"రేపు గోవాలో వర్షం వస్తుందా?\", లేదా మరింత సహజ అవగాహన కోసం సెట్టింగ్స్‌లో Gemini కీ జోడించండి.",
+    verdictRain:(n)=>`${n} విషయంలో ఈరోజు వర్షం వచ్చే అవకాశం ఉంది, తదనుగుణంగా ప్లాన్ చేసుకోండి.`,
+    verdictClear:(n)=>`${n} కోసం వాతావరణం బాగానే ఉంది — నిశ్చింతగా వెళ్లొచ్చు.`,
+    tipRain:(n)=>`వర్షం వచ్చే అవకాశం మంచిగా ఉంది, ${n} కోసం దీన్ని గుర్తుంచుకోండి.`,
+    tipClear:(n)=>`${n} కోసం పరిస్థితులు బాగానే ఉన్నాయి.`
+  },
+  ta: {
+    currentIntro:(place,temp,cond)=>`இப்போது ${place}இல் ${temp} உள்ளது, ${cond}`,
+    feelsMore:(temp)=>`, ஆனால் உணரும் வெப்பம் ${temp} போல் இருக்கும். `, periodEnd:'. ',
+    humidityWind:(h,w)=>`ஈரப்பதம் ${h}% ஆக உள்ளது, காற்றின் வேகம் சுமார் ${w}.`,
+    rainSoon:(p)=>` அடுத்த ஒரு மணி நேரத்தில் மழை வரும் வாய்ப்பு சுமார் ${p}%.`,
+    hourlyNoAlign:(place)=>`${place}க்கான மணிநேர தரவு உள்ளது, ஆனால் தற்போதைய நேரத்துடன் பொருத்த முடியவில்லை — கீழே உள்ள காட்சியில் முழு விவரங்களைப் பாருங்கள்.`,
+    hourlyIntro:(place,minT,maxT,cond)=>`அடுத்த சில மணி நேரங்களில் ${place}இல் வெப்பநிலை ${minT} முதல் ${maxT} வரை இருக்கும், பெரும்பாலும் ${cond}.`,
+    hourlyRainAt:(hour,p)=>` ${hour} மணியளவில் மழை வரும் வாய்ப்பு அதிகம், சுமார் ${p}% வாய்ப்பு.`,
+    hourlyRainUnlikely:' தற்போதைக்கு மழை வரும் வாய்ப்பு குறைவாகவே தெரிகிறது.',
+    dailyIntro:(place,maxT,minT,cond)=>`இந்த வாரம் ${place}இல் இன்று அதிகபட்ச வெப்பநிலை சுமார் ${maxT}, குறைந்தபட்சம் ${minT} ஆக இருக்கும், பெரும்பாலும் ${cond}.`,
+    dailyWarmest:(day,temp)=>` அதிக வெப்பமான நாள் ${day} போல் தெரிகிறது, சுமார் ${temp}.`,
+    dailyRainDays:(days)=>` ${days} அன்று மழை வரலாம், கவனத்தில் கொள்ளுங்கள்.`,
+    dailyNoRain:' அடுத்த சில நாட்களில் குறிப்பிடத்தக்க மழை எதிர்பார்க்கப்படவில்லை.',
+    today:'இன்று',
+    askLocation:"நிச்சயமாக — எந்த இடத்திற்கான வானிலையை சொல்லவேண்டும்?",
+    notFound:(loc)=>`"${loc}" என்ற இடம் கிடைக்கவில்லை. எழுத்துப்பிழையை சரிபார்க்கவும், அல்லது மாநிலம்/நாட்டைச் சேர்க்கவும்.`,
+    serviceError:"வானிலை சேவையை அடைவதில் சிக்கல் ஏற்பட்டது — சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.",
+    greeting:"ஹாய்! எங்கு வேண்டுமானாலும் வானிலை பற்றி என்னிடம் கேளுங்கள் — எ.கா. \"சென்னையில் இன்று வானிலை எப்படி இருக்கிறது?\"",
+    thanks:"எப்போது வேண்டுமானாலும்! இன்னொரு முன்னறிவிப்பு வேண்டுமா சொல்லுங்கள்.",
+    fallback:"இது வானிலை கேள்வி போல் தெரியவில்லை — இப்படி கேளுங்கள்: \"நாளை கோவாவில் மழை வருமா?\", அல்லது இன்னும் இயல்பான புரிதலுக்கு அமைப்புகளில் Gemini சாவியைச் சேர்க்கவும்.",
+    verdictRain:(n)=>`${n}க்கு இன்று மழை வாய்ப்பு உள்ளது, அதற்கேற்ப திட்டமிடுங்கள்.`,
+    verdictClear:(n)=>`${n}க்கு இன்றைய வானிலை நன்றாக உள்ளது — கவலையின்றி செல்லலாம்.`,
+    tipRain:(n)=>`மழை வரும் வாய்ப்பு நன்றாக உள்ளது, ${n}க்கு இதை நினைவில் கொள்ளுங்கள்.`,
+    tipClear:(n)=>`${n}க்கு நிலைமைகள் நன்றாக உள்ளன.`
+  }
+};
+
+/* Short localized noun phrases for a detected purpose, used inside the
+   generic (non-English) verdict/tip templates above. */
+const PURPOSE_NOUN_I18N = {
+  en: { farming:'watering', cycling:'cycling', travel:'traveling', event:'the outdoor event', running:'a run', hiking:'hiking', commute:'your commute', default:'today' },
+  hi: { farming:'पानी देने', cycling:'साइकिल चलाने', travel:'यात्रा करने', event:'बाहर के कार्यक्रम', running:'दौड़ने', hiking:'हाइकिंग', commute:'ऑफिस जाने', default:'आज' },
+  te: { farming:'నీళ్లు పోయడం', cycling:'సైక్లింగ్', travel:'ప్రయాణం', event:'బహిరంగ కార్యక్రమం', running:'పరుగు', hiking:'హైకింగ్', commute:'కమ్యూట్', default:'ఈరోజు' },
+  ta: { farming:'தண்ணீர் ஊற்றுவது', cycling:'சைக்கிள் ஓட்டுவது', travel:'பயணம்', event:'வெளிப்புற நிகழ்வு', running:'ஓட்டம்', hiking:'ஹைக்கிங்', commute:'பயணம்', default:'இன்று' }
+};
+
+function reply(key, ...args){
+  const lang = getLang();
+  const dict = REPLY_I18N[lang] || REPLY_I18N.en;
+  const fn = dict[key] !== undefined ? dict[key] : REPLY_I18N.en[key];
+  return typeof fn === 'function' ? fn(...args) : fn;
+}
+
+
+/* ================= weather code map ================= */
+const wcMap = {
+  0:['☀️','clear sky'],1:['🌤️','mainly clear'],2:['⛅','partly cloudy'],3:['☁️','overcast'],
+  45:['🌫️','foggy'],48:['🌫️','foggy with rime'],51:['🌦️','light drizzle'],53:['🌧️','drizzling'],
+  55:['🌧️','drizzling steadily'],61:['🌦️','light rain'],63:['🌧️','raining'],65:['🌧️','raining heavily'],
+  71:['❄️','snowing lightly'],73:['❄️','snowing'],75:['❄️','snowing heavily'],80:['🌦️','showery'],
+  81:['🌧️','showering steadily'],82:['⛈️','pouring'],95:['⛈️','thundery'],96:['⛈️','stormy with hail']
+};
+const wcIcon = c => (wcMap[c] && wcMap[c][0]) || '❓';
+function wcText(code){
+  const lang = getLang();
+  const map = WC_TEXT_I18N[lang] || WC_TEXT_I18N.en;
+  if(map[code] !== undefined) return map[code];
+  if(WC_TEXT_I18N.en[code] !== undefined) return WC_TEXT_I18N.en[code];
+  return lang === 'en' ? 'unclear skies' : WC_TEXT_I18N.en[0] ? 'unclear skies' : 'unclear skies';
+}
+function wcTextCap(c){ const t = wcText(c); return t.charAt(0).toUpperCase() + t.slice(1); }
+
+/* ================= formatting ================= */
+const CtoF = c => (c*9/5)+32;
+const kmToMi = k => k*0.621371;
+const mmToIn = m => m/25.4;
+function fmtTemp(v){ if(v==null) return '--'; return Math.round(units==='metric'?v:CtoF(v))+'°'; }
+function fmtWind(v){ if(v==null) return '--'; return units==='metric' ? Math.round(v)+' km/h' : Math.round(kmToMi(v))+' mph'; }
+function fmtPrecip(v){ if(v==null) return '--'; return units==='metric' ? v.toFixed(1)+' mm' : mmToIn(v).toFixed(2)+' in'; }
+function feelsLike(t,windKmh){
+  if(t==null) return t;
+  if(t<=10 && windKmh!=null){
+    const v = windKmh;
+    return Math.round((13.12+0.6215*t-11.37*Math.pow(v,0.16)+0.3965*t*Math.pow(v,0.16))*10)/10;
+  }
+  return t;
+}
+
+/* ================= settings modal (Gemini key) ================= */
+function getGeminiKey(){
+  return localStorage.getItem(GEMINI_KEY_STORAGE) || '';
+}
+function refreshSettingsBtn(){
+  settingsBtn.classList.toggle('on', !!getGeminiKey());
+}
+function openKeyModal(){
+  keyInput.value = getGeminiKey();
+  keyStatus.textContent = getGeminiKey() ? ui('keyStatusHas') : '';
+  keyScrim.classList.add('open');
+  keyModal.classList.add('open');
+}
+function closeKeyModal(){
+  keyScrim.classList.remove('open');
+  keyModal.classList.remove('open');
+}
+settingsBtn.addEventListener('click', openKeyModal);
+keyScrim.addEventListener('click', closeKeyModal);
+keySaveBtn.addEventListener('click', () => {
+  const v = keyInput.value.trim();
+  if(v){
+    localStorage.setItem(GEMINI_KEY_STORAGE, v);
+    keyStatus.textContent = ui('keyStatusSaved');
+  }
+  refreshSettingsBtn();
+  setTimeout(closeKeyModal, 500);
+});
+keyClearBtn.addEventListener('click', () => {
+  localStorage.removeItem(GEMINI_KEY_STORAGE);
+  keyInput.value = '';
+  keyStatus.textContent = ui('keyStatusRemoved');
+  refreshSettingsBtn();
+});
+
+/* ================= language modal ================= */
+function renderLangOptions(){
+  const current = getLang();
+  langOptions.innerHTML = '';
+  LANGS.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'lang-option' + (l.code === current ? ' active' : '');
+    btn.type = 'button';
+    btn.innerHTML = `<span>${l.label}</span><span class="native">${l.native}</span>`;
+    btn.addEventListener('click', () => {
+      localStorage.setItem(LANG_STORAGE, l.code);
+      closeLangModal();
+      applyLanguage();
+    });
+    langOptions.appendChild(btn);
+  });
+}
+function openLangModal(){
+  renderLangOptions();
+  langScrim.classList.add('open');
+  langModal.classList.add('open');
+}
+function closeLangModal(){
+  langScrim.classList.remove('open');
+  langModal.classList.remove('open');
+}
+langBtn.addEventListener('click', openLangModal);
+langScrim.addEventListener('click', closeLangModal);
+
+/** Applies the currently-selected language to every static UI string,
+    the example chips, the speech-recognizer locale, and re-renders the
+    sidebar + active chat so already-shown chips/labels update too. */
+function applyLanguage(){
+  document.documentElement.lang = getLang();
+
+  brandTag.textContent = ui('brandTag');
+  inputEl.placeholder = ui('placeholder');
+  micBtn.title = ui('micTitle');
+  sendBtn.title = ui('sendTitle');
+  hintEl.textContent = ui('hintDefault');
+
+  emptyTitleEl.textContent = ui('emptyTitle');
+  emptyDescEl.textContent = ui('emptyDesc');
+
+  examplesWrap.innerHTML = '';
+  ui('exampleChips').forEach(chip => {
+    const div = document.createElement('div');
+    div.className = 'ex-chip';
+    div.dataset.ex = chip.query;
+    div.textContent = chip.label;
+    div.addEventListener('click', () => {
+      inputEl.value = chip.query;
+      handleSend();
+    });
+    examplesWrap.appendChild(div);
+  });
+
+  newChatBtn.textContent = ui('newChat');
+
+  keyModalTitleEl.textContent = ui('keyModalTitle');
+  keyModalDescEl.innerHTML = ui('keyModalDesc');
+  keyInput.placeholder = ui('keyPlaceholder');
+  keyClearBtn.textContent = ui('keyClear');
+  keySaveBtn.textContent = ui('keySave');
+
+  langModalTitleEl.textContent = ui('langModalTitle');
+  langModalDescEl.textContent = ui('langModalDesc');
+
+  if(recognizer) recognizer.lang = getLocale();
+
+  renderSidebar();
+  renderActiveChatMessages();
+}
+
+/* ================= sidebar rendering ================= */
+function activeChat(){
+  return chats.find(c => c.id === activeChatId) || null;
+}
+
+function fmtChatDate(ts){
+  const d = new Date(ts);
+  const today = new Date();
+  return d.toDateString() === today.toDateString()
+    ? d.toLocaleTimeString(getLocale(),{hour:'numeric',minute:'2-digit'})
+    : d.toLocaleDateString(getLocale(),{month:'short', day:'numeric'});
+}
+
+function renderSidebar(){
+  if(chats.length === 0){
+    chatListEl.innerHTML = `<div class="sidebar-empty">${ui('noChats')}</div>`;
+    return;
+  }
+  chatListEl.innerHTML = '';
+  chats.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (c.id === activeChatId ? ' active' : '');
+    item.innerHTML = `
+      <div class="main">
+        <div class="title"></div>
+        <div class="sub">${fmtChatDate(c.updatedAt)}</div>
+      </div>
+      <button class="del" title="Delete chat">✕</button>
+    `;
+    item.querySelector('.title').textContent = c.title || 'New chat';
+    item.addEventListener('click', () => selectChat(c.id));
+    item.querySelector('.del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteChat(c.id);
+    });
+    chatListEl.appendChild(item);
+  });
+}
+
+function setSidebarOpen(open){
+  sidebarOpen = open;
+  sidebarEl.classList.toggle('collapsed', !sidebarOpen);
+}
+
+menuBtn.addEventListener('click', () => setSidebarOpen(!sidebarOpen));
+
+/* ================= chat lifecycle ================= */
+async function initChats(){
+  chats = await dbListChats();
+  if(chats.length === 0){
+    const c = makeChat();
+    chats = [c];
+    await dbSaveChat(c);
+  }
+  const lastOpen = localStorage.getItem(LAST_OPEN_KEY);
+  activeChatId = chats.some(c => c.id === lastOpen) ? lastOpen : chats[0].id;
+  renderSidebar();
+  renderActiveChatMessages();
+  refreshSettingsBtn();
+}
+
+async function startNewChat(){
+  const c = makeChat();
+  chats = [c, ...chats];
+  activeChatId = c.id;
+  localStorage.setItem(LAST_OPEN_KEY, c.id);
+  await dbSaveChat(c);
+  renderSidebar();
+  renderActiveChatMessages();
+}
+
+function selectChat(id){
+  if(id === activeChatId) return;
+  activeChatId = id;
+  localStorage.setItem(LAST_OPEN_KEY, id);
+  renderSidebar();
+  renderActiveChatMessages();
+}
+
+async function deleteChat(id){
+  chats = chats.filter(c => c.id !== id);
+  await dbDeleteChat(id);
+  if(activeChatId === id){
+    if(chats.length === 0){
+      await startNewChat();
+      return;
+    }
+    activeChatId = chats[0].id;
+    localStorage.setItem(LAST_OPEN_KEY, activeChatId);
+  }
+  renderSidebar();
+  renderActiveChatMessages();
+}
+
+async function persistActiveChat(){
+  const c = activeChat();
+  if(!c) return;
+  c.updatedAt = Date.now();
+  chats = [c, ...chats.filter(x => x.id !== c.id)];
+  await dbSaveChat(c);
+  renderSidebar();
+}
+
+newChatBtn.addEventListener('click', startNewChat);
+
+/* ================= chat rendering (loads from active chat's saved messages) ================= */
+function scrollToBottom(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function renderActiveChatMessages(){
+  messagesEl.innerHTML = '';
+  const c = activeChat();
+  const msgs = c ? c.messages : [];
+
+  if(msgs.length === 0){
+    messagesEl.appendChild(emptyState);
+    emptyState.style.display = '';
+    return;
+  }
+
+  msgs.forEach(m => {
+    if(m.role === 'user'){
+      renderUserRow(m.text);
+    } else {
+      renderAssistantRow(m);
+    }
+  });
+  scrollToBottom();
+}
+
+function renderUserRow(text){
+  const row = document.createElement('div');
+  row.className = 'msg user';
+  row.innerHTML = `<div class="bubble"></div>`;
+  row.querySelector('.bubble').textContent = text;
+  messagesEl.appendChild(row);
+}
+
+function renderAssistantRow(parsed){
+  const row = document.createElement('div');
+  row.className = 'msg assistant';
+  const wrap = document.createElement('div');
+  wrap.className = 'body-wrap';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = parsed.reply;
+  wrap.appendChild(bubble);
+
+  if(parsed.isWeatherQuery && parsed.location && parsed.viewType){
+    const chip = document.createElement('div');
+    chip.className = 'weather-chip';
+    const label = parsed.viewType === 'hourly' ? ui('hourlyLabel')
+                : parsed.viewType === 'daily' ? ui('dailyLabel')
+                : ui('currentLabel');
+    const chipPlace = parsed.placeName || parsed.location;
+    chip.innerHTML = `<span class="ic">${parsed.viewType==='hourly'?'🕐':parsed.viewType==='daily'?'📅':'🌡️'}</span> ${label} · ${chipPlace}`;
+    chip.addEventListener('click', () => openDrawer(parsed.location, parsed.viewType));
+    wrap.appendChild(chip);
+  }
+
+  if(parsed.viaGemini){
+    const badge = document.createElement('div');
+    badge.className = 'ai-badge';
+    badge.innerHTML = `<span class="dot"></span> ${ui('smartReply')}`;
+    wrap.appendChild(badge);
+  }
+
+  row.innerHTML = `<div class="avatar">🌤️</div>`;
+  row.appendChild(wrap);
+  messagesEl.appendChild(row);
+}
+
+function addUserMessage(text){
+  emptyState.style.display = 'none';
+  renderUserRow(text);
+  scrollToBottom();
+}
+
+function addThinkingBubble(){
+  emptyState.style.display = 'none';
+  const row = document.createElement('div');
+  row.className = 'msg assistant';
+  row.id = 'thinking-row';
+  row.innerHTML = `<div class="avatar">🌤️</div><div class="bubble"><div class="thinking"><span></span><span></span><span></span></div></div>`;
+  messagesEl.appendChild(row);
+  scrollToBottom();
+  return row;
+}
+
+async function addAssistantMessage(parsed){
+  const thinkingRow = document.getElementById('thinking-row');
+  if(thinkingRow) thinkingRow.remove();
+
+  renderAssistantRow(parsed);
+  scrollToBottom();
+
+  // For explicit report requests ("weather for the whole week", "hourly
+  // report") show the detail panel immediately instead of waiting for the
+  // person to tap the chip.
+  if(parsed.isWeatherQuery && parsed.location && (parsed.viewType === 'hourly' || parsed.viewType === 'daily')){
+    openDrawer(parsed.location, parsed.viewType);
+  }
+
+  // persist both the user message and this assistant reply to the active chat
+  const c = activeChat();
+  if(c){
+    if(c.title === 'New chat'){
+      const lastUser = [...c.messages].reverse().find(m => m.role === 'user');
+      if(lastUser) c.title = lastUser.text.slice(0, 40);
+    }
+    c.messages.push({ role:'assistant', ...parsed });
+    await persistActiveChat();
+  }
+}
+
+function addErrorMessage(text){
+  const thinkingRow = document.getElementById('thinking-row');
+  if(thinkingRow) thinkingRow.remove();
+  const row = document.createElement('div');
+  row.className = 'msg assistant';
+  row.innerHTML = `<div class="avatar">🌤️</div><div class="bubble">${text}</div>`;
+  messagesEl.appendChild(row);
+  scrollToBottom();
+}
+
+/* ================= local language understanding ================= */
+const WEATHER_KEYWORDS = ['weather','rain','raining','rainy','sunny','sunshine','forecast','temperature','temp',
+  'hot','cold','humid','wind','windy','snow','snowing','cloudy','cloud','storm','stormy','umbrella','jacket',
+  'sky','degrees','climate','drizzle','shower','showers','sunburn','freezing','chilly','warm','muggy'];
+
+/* Weather-related keyword lists for the non-English UI languages. Because
+   Hindi/Telugu/Tamil aren't case-sensitive and word boundaries (\b) don't
+   work reliably on non-Latin scripts in JS regex, these are matched with
+   plain substring checks instead of the English regex approach. */
+const WEATHER_KEYWORDS_I18N = {
+  hi: ['मौसम','बारिश','बरसात','धूप','गर्मी','सर्दी','ठंड','नमी','हवा','आंधी','तूफान','बर्फ','बादल','कोहरा','बूंदाबांदी','पूर्वानुमान','तापमान','छाता'],
+  te: ['వాతావరణం','వర్షం','వర్షపాతం','ఎండ','వేడి','చలి','తేమ','గాలి','తుఫాను','మంచు','మేఘం','మేఘావృతం','పొగమంచు','జల్లులు','ఉష్ణోగ్రత','సూచన','గొడుగు'],
+  ta: ['வானிலை','மழை','வெயில்','வெப்பம்','குளிர்','ஈரப்பதம்','காற்று','புயல்','பனி','மேகம்','மூடுபனி','தூறல்','வெப்பநிலை','முன்னறிவிப்பு','குடை']
+};
+
+/* Filler words (today/tomorrow/this-week/hourly/etc. and common
+   question words) that get stripped out before what's left is treated
+   as the place name, for the non-English location extractor below. */
+const TIME_STOPWORDS_I18N = {
+  hi: ['इस हफ्ते','इस सप्ताह','आने वाले दिनों में','आज','कल','अभी','सुबह','शाम','रात','घंटेवार','घंटे में','घंटे','कैसा रहेगा','कैसा है','कैसी है','कैसा','कैसी','होगा','होगी','है क्या','है'],
+  te: ['ఈ వారం','రాబోయే రోజుల్లో','నేటి','ఈరోజు','రేపు','ఇప్పుడు','ఉదయం','సాయంత్రం','రాత్రి','గంట గంటకు','గంటలో','గంట','ఎలా ఉంటుంది','ఎలా ఉంది','ఎలా','ఉంటుంది','ఉందా','ఉంది'],
+  ta: ['இந்த வாரம்','வரும் நாட்களில்','இன்றைய','இன்று','நாளை','இப்போது','காலை','மாலை','இரவு','மணிநேர','மணிநேரம்','மணி','எப்படி இருக்கும்','எப்படி இருக்கிறது','எப்படி','இருக்கும்','இருக்கிறதா','இருக்கிறது']
+};
+
+/* Locative-postposition markers to strip off the tail of the extracted
+   location phrase. Hindi keeps these as separate words (leading space);
+   Telugu/Tamil glue them directly onto the place name, so they're matched
+   as plain suffixes. Longer forms are listed first so they're preferred
+   over a shorter substring (e.g. Tamil "யில்" before "இல்"). */
+const LOCATIVE_SUFFIXES_I18N = {
+  hi: [' में',' का',' की',' के'],
+  te: ['నుండి','లో','కి'],
+  ta: ['யில்','விற்கு','இருந்து','இல்','க்கு']
+};
+
+const GREETING_RE = /^(hi|hello|hey|yo|sup|good morning|good evening|good afternoon)\b/i;
+const THANKS_RE = /\b(thanks|thank you|thx|cheers)\b/i;
+const GREETING_WORDS_I18N = { hi:['नमस्ते','नमस्कार','हाय','हेलो'], te:['హాయ్','నమస్కారం','హలో','నమస్తే'], ta:['வணக்கம்','ஹாய்','ஹலோ'] };
+const THANKS_WORDS_I18N = { hi:['धन्यवाद','शुक्रिया','थैंक्स'], te:['ధన్యవాదాలు','థాంక్స్'], ta:['நன்றி','தேங்க்ஸ்'] };
+
+/* view-type (hourly / daily) trigger words per non-English language */
+const VIEWTYPE_WORDS_I18N = {
+  hi: { daily:['हफ्ते','सप्ताह','कल','आने वाले दिनों'], hourly:['घंटे','घंटेवार','आज सुबह','आज शाम','आज रात'] },
+  te: { daily:['వారం','రేపు','రాబోయే రోజుల్లో'], hourly:['గంట','గంటలో','ఈరోజు ఉదయం','ఈరోజు సాయంత్రం','ఈరోజు రాత్రి'] },
+  ta: { daily:['வாரம்','நாளை','வரும் நாட்களில்'], hourly:['மணி','மணிநேரம்','இன்று காலை','இன்று மாலை','இன்று இரவு'] }
+};
+
+/* "or"-word and a few common yes/no question phrases, used to detect
+   yes/no-style questions ("should I water... or will it rain?") in the
+   non-English languages. */
+const OR_WORD_I18N = { hi:'या', te:'లేదా', ta:'அல்லது' };
+const YESNO_PHRASES_I18N = {
+  hi: ['जाऊं क्या','चाहिए क्या','क्या मुझे','क्या मैं'],
+  te: ['వేయాలా','వెళ్లొచ్చా','చేయొచ్చా','చేయాలా'],
+  ta: ['செய்யலாமா','போகலாமா','வேண்டுமா','முடியுமா']
+};
+
+function isGreeting(lower){
+  if(GREETING_RE.test(lower.trim())) return true;
+  const words = GREETING_WORDS_I18N[getLang()] || [];
+  return words.some(w => lower.trim().startsWith(w));
+}
+function isThanks(lower){
+  if(THANKS_RE.test(lower)) return true;
+  const words = THANKS_WORDS_I18N[getLang()] || [];
+  return words.some(w => lower.includes(w));
+}
+
+function isWeatherRelated(lower){
+  const lang = getLang();
+  if(lang === 'en'){
+    if(WEATHER_KEYWORDS.some(k => lower.includes(k))) return true;
+    if(/\b(today|tomorrow|tonight|this week|this weekend)\b.*\b(like|going to be|looking)\b/.test(lower)) return true;
+    if(/\bshould i (bring|carry|take|wear)\b/.test(lower)) return true;
+  } else {
+    const words = WEATHER_KEYWORDS_I18N[lang] || [];
+    if(words.some(k => lower.includes(k))) return true;
+  }
+  // A detected purpose (watering plants, cycling, hiking, etc.) is itself a
+  // strong signal the user cares about weather, even with no weather word.
+  if(detectPurpose(lower)) return true;
+  return false;
+}
+
+function detectViewType(lower){
+  const lang = getLang();
+  if(lang === 'en'){
+    if(/\b(week|days|next few days|outlook|coming days|this weekend)\b/.test(lower)) return 'daily';
+    if(/\btomorrow\b/.test(lower)) return 'daily';
+    if(/\b(hour|hourly|later today|this morning|this afternoon|this evening|tonight)\b/.test(lower)) return 'hourly';
+    return 'current';
+  }
+  const words = VIEWTYPE_WORDS_I18N[lang];
+  if(words){
+    if(words.daily.some(w => lower.includes(w))) return 'daily';
+    if(words.hourly.some(w => lower.includes(w))) return 'hourly';
+  }
+  return 'current';
+}
+
+const PURPOSE_RULES = [
+  { key:'farming', re:/\b(t[ao]m[ao]t[ao]\w*|garden\w*|crops?|farm\w*|irrigat\w*|fields?)\b|\bwater(ing)?\b[^.?!]{0,25}\b(plants?|crops?|fields?|gardens?)\b/i },
+  { key:'cycling', re:/\b(cycle|cycling|bike ride|biking)\b/ },
+  { key:'travel', re:/\b(flight|fly|flying|airport|road trip|travel(ing)?|drive to|driving to)\b/ },
+  { key:'event', re:/\b(wedding|outdoor event|picnic|festival|outdoor party|bbq|barbecue)\b/ },
+  { key:'running', re:/\b(run|running|jog|jogging|marathon)\b/ },
+  { key:'hiking', re:/\b(hike|hiking|trek|trekking|camping|climb|climbing)\b/ },
+  { key:'commute', re:/\b(commute|commuting|walk to work|school run)\b/ }
+];
+function detectPurpose(lower){
+  for(const rule of PURPOSE_RULES){ if(rule.re.test(lower)) return rule.key; }
+  return null;
+}
+
+/** Detects if the user's question is phrased as a yes/no decision. */
+function isYesNoQuestion(lower){
+  const lang = getLang();
+  if(lang === 'en'){
+    return /\bshould i\b/.test(lower) || /\bcan i\b/.test(lower) || /\bwill it\b/.test(lower)
+        || /\bis it going to\b/.test(lower) || /\bdo i need\b/.test(lower)
+        || (/\?\s*$/.test(lower) && /\bor\b/.test(lower));
+  }
+  const orWord = OR_WORD_I18N[lang];
+  if(orWord && lower.includes(orWord) && /[?？]\s*$/.test(lower.trim())) return true;
+  const phrases = YESNO_PHRASES_I18N[lang] || [];
+  return phrases.some(p => lower.includes(p));
+}
+
+/** Localized short noun phrase describing the detected purpose (or a
+    generic "today" if none/unknown), used by the non-English generic
+    verdict/tip templates. */
+function purposeNoun(purpose){
+  const lang = getLang();
+  const dict = PURPOSE_NOUN_I18N[lang] || PURPOSE_NOUN_I18N.en;
+  return (purpose && dict[purpose]) ? dict[purpose] : dict.default;
+}
+
+/** Direct yes/no verdict + short reason, purpose-aware. Used to open the reply.
+    English keeps the richer, purpose-specific phrasing; other languages use
+    the generic localized templates with a purpose noun substituted in. */
+function directVerdict(purpose, ctx){
+  const rain = ctx.rainSoon;
+  if(getLang() !== 'en'){
+    return rain ? reply('verdictRain', purposeNoun(purpose)) : reply('verdictClear', purposeNoun(purpose));
+  }
+  switch(purpose){
+    case 'farming':
+      return rain
+        ? "Hold off on watering — rain's expected, so your plants should get enough naturally."
+        : "Yes, go ahead and water them — no rain in sight today.";
+    case 'cycling':
+      return rain
+        ? "Maybe skip it or ride early — rain's likely later."
+        : ctx.windKmh > 25
+          ? "You can ride, but expect strong headwinds out there."
+          : "Yes, good conditions for a ride today.";
+    case 'travel':
+      return rain ? "Pack a rain layer — showers are likely along the way." : "Should be smooth, clear travel weather.";
+    case 'event':
+      return rain ? "Worth having an indoor backup — rain's a real possibility." : "Yes, great weather to be outdoors today.";
+    case 'running':
+      return ctx.tempC > 30
+        ? "You can run, but go early morning or evening — it'll be hot midday."
+        : rain ? "Doable, but grab a cap — light rain's possible." : "Yes, solid conditions for a run.";
+    case 'hiking':
+      return rain ? "Trails may get slick — pack for wet conditions if you go." : "Yes, nice day to be on the trail.";
+    case 'commute':
+      return rain ? "Grab an umbrella before heading out." : "Should be a dry, easy commute.";
+    default:
+      return rain ? "Rain looks likely, so plan accordingly." : "Looks clear — you should be fine.";
+  }
+}
+
+function purposeTip(purpose, ctx){
+  const rain = ctx.rainSoon;
+  if(getLang() !== 'en'){
+    return rain ? reply('tipRain', purposeNoun(purpose)) : reply('tipClear', purposeNoun(purpose));
+  }
+  switch(purpose){
+    case 'farming':
+      return rain ? "Since rain looks likely, it might be worth skipping the watering can today."
+                  : "No rain in the forecast, so your plants could probably use a drink.";
+    case 'cycling':
+      return ctx.windKmh > 25 ? "Winds are up, so expect some extra resistance out there."
+           : rain ? "There's a decent rain chance, so maybe keep a rain jacket handy."
+           : "Conditions look pretty rideable.";
+    case 'travel':
+      return rain ? "Worth packing a light rain layer just in case." : "Should be smooth traveling weather.";
+    case 'event':
+      return rain ? "Might be worth having an indoor backup plan, just in case." : "Looking like solid weather to be outdoors.";
+    case 'running':
+      return ctx.tempC > 30 ? "It's warm, so bring water and consider running earlier or later in the day."
+           : rain ? "Light rain's possible, so maybe grab a cap." : "Good temperature for a run.";
+    case 'hiking':
+      return rain ? "Trails could get slick, so pack for wet conditions." : "Nice conditions for the trail.";
+    case 'commute':
+      return rain ? "Grab an umbrella before you head out." : "Should be a dry commute.";
+    default: return "";
+  }
+}
+
+function cleanLocation(s){
+  let out = s.trim().replace(/\s+/g,' ').replace(/^(the|a|an)\s+/i,'');
+  // Safety net: strip any trailing timeframe/report clause that the stop-word
+  // list in extractLocation didn't already cut off, e.g. "delhi for whole week"
+  // -> "delhi", "paris hourly report" -> "paris".
+  out = out.replace(/\s+(for\s+)?(the\s+)?(whole|entire|full|next|coming)?\s*(week|weekend|days?|hours?|hourly|report|forecast|today|tomorrow|tonight)\b.*$/i, '').trim();
+  return out;
+}
+
+function extractLocation(rawText){
+  const lang = getLang();
+  if(lang !== 'en'){
+    const loc = extractLocationForLang(rawText, lang);
+    if(loc) return loc;
+  }
+
+  let text = rawText.trim();
+  const stopWords = 'or|and|will|wont|won\'t|is|are|do|does|should|for|today|tomorrow|tonight|this week|this weekend|whole week|the whole week|entire week|full week|next week|coming week|next few days|right now|currently|later|this morning|this afternoon|this evening|hourly|hour|report|forecast';
+  const prepMatch = text.match(new RegExp(
+    `\\b(?:in|at|for|near|around)\\s+([A-Za-z\\u00C0-\\u017F][A-Za-z\\u00C0-\\u017F\\s'-]*?)(?=[,.;?!]|\\s+(?:${stopWords})\\b|$)`, 'i'
+  ));
+  if(prepMatch && prepMatch[1].trim().length > 1) return cleanLocation(prepMatch[1]);
+
+  const suffixMatch = text.match(/^([A-Za-z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s'-]*?)\s+weather\b/i);
+  if(suffixMatch && suffixMatch[1].trim().length > 1) return cleanLocation(suffixMatch[1]);
+
+  return null;
+}
+
+/** Location extractor for Hindi/Telugu/Tamil. These languages mark "in"
+    with a postposition rather than a leading preposition like English's
+    "in Mumbai", and Telugu/Tamil glue that postposition directly onto the
+    place name (e.g. "ముంబైలో" = "Mumbai" + "లో"/"in"). Strategy:
+      1. Cut the sentence at the first weather-related keyword — everything
+         before it is the "who/where/when" part of the sentence.
+      2. Strip out known time/filler words (today, this week, hourly, etc.)
+         and common question words from what's left.
+      3. Strip a trailing locative postposition (glued suffix for
+         Telugu/Tamil, a separate trailing word for Hindi) to expose the
+         bare place name. */
+function extractLocationForLang(rawText, lang){
+  const weatherWords = WEATHER_KEYWORDS_I18N[lang] || [];
+  const timeWords = TIME_STOPWORDS_I18N[lang] || [];
+  const suffixes = LOCATIVE_SUFFIXES_I18N[lang] || [];
+
+  const text = rawText.trim();
+
+  let cutIdx = text.length;
+  for(const w of weatherWords){
+    const idx = text.indexOf(w);
+    if(idx !== -1 && idx < cutIdx) cutIdx = idx;
+  }
+  let head = text.slice(0, cutIdx).trim();
+  if(!head) return null;
+
+  for(const t of timeWords){
+    if(head.includes(t)) head = head.split(t).join(' ');
+  }
+  head = head.replace(/[?？,.।]+/g,' ').replace(/\s+/g,' ').trim();
+  if(!head) return null;
+
+  // Repeatedly strip trailing postpositions/particles (there can be more
+  // than one, e.g. Hindi "मुंबई में का" after filler removal collapses
+  // extra particles onto the end).
+  let changed = true;
+  while(changed && head){
+    changed = false;
+    for(const suf of suffixes){
+      if(head.endsWith(suf)){
+        head = head.slice(0, head.length - suf.length).trim();
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  head = head.replace(/\s+/g,' ').trim();
+  return head.length > 0 ? head : null;
+}
+
+/** Scans backward through this chat's saved messages for the last place
+    a weather answer was actually given for, so follow-ups like
+    "can I water my field?" don't need the place repeated. */
+function getLastKnownLocation(messages){
+  if(!messages) return null;
+  for(let i = messages.length - 1; i >= 0; i--){
+    const m = messages[i];
+    if(m.role === 'assistant' && m.isWeatherQuery && m.location) return m.location;
+  }
+  return null;
+}
+
+function parseQuery(rawText){
+  const lower = rawText.toLowerCase();
+  if(isGreeting(lower)){
+    return { kind:'greeting' };
+  }
+  if(isThanks(lower)){
+    return { kind:'thanks' };
+  }
+  if(!isWeatherRelated(lower)){
+    return { kind:'other' };
+  }
+  const location = extractLocation(rawText);
+  const viewType = detectViewType(lower);
+  const purpose = detectPurpose(lower);
+  const yesNo = isYesNoQuestion(lower);
+  return { kind:'weather', location, viewType, purpose, yesNo };
+}
+
+/* ================= nearest-hour index (fixes "--%" bug) =================
+   current_weather.time doesn't always exact-string-match an entry in
+   hourly.time (different seconds precision, DST edges, provider quirks).
+   Falling back to indexOf(...) === -1 silently killed humidity/precip.
+   Instead, find the hourly slot whose timestamp is closest to "now". */
+function currentIndex(data){
+  const times = data.hourly.time;
+  const exact = times.indexOf(data.current_weather.time);
+  if(exact !== -1) return exact;
+
+  const target = new Date(data.current_weather.time).getTime();
+  let bestIdx = -1, bestDiff = Infinity;
+  for(let i=0;i<times.length;i++){
+    const diff = Math.abs(new Date(times[i]).getTime() - target);
+    if(diff < bestDiff){ bestDiff = diff; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+/* ================= reply generation (rule-based fallback) ================= */
+function buildCurrentReply(bundle, purpose, yesNo){
+  const { place, data } = bundle;
+  const cw = data.current_weather;
+  const idx = currentIndex(data);
+  const humidity = idx>=0 ? data.hourly.relativehumidity_2m[idx] : null;
+  const precipProb = idx>=0 ? data.hourly.precipitation_probability[idx] : null;
+  const feels = feelsLike(cw.temperature, cw.windspeed);
+  const rainSoon = precipProb != null && precipProb >= 30;
+
+  let text = '';
+  if(purpose && yesNo){
+    text += directVerdict(purpose, { rainSoon, tempC: cw.temperature, windKmh: cw.windspeed }) + ' ';
+  }
+
+  text += reply('currentIntro', place.name, fmtTemp(cw.temperature), wcText(cw.weathercode));
+  text += feels !== cw.temperature ? reply('feelsMore', fmtTemp(feels)) : reply('periodEnd');
+  text += reply('humidityWind', humidity!=null?Math.round(humidity):'--', fmtWind(cw.windspeed));
+
+  if(rainSoon){
+    text += reply('rainSoon', Math.round(precipProb));
+  }
+  if(purpose && !yesNo){
+    const tip = purposeTip(purpose, { rainSoon, tempC: cw.temperature, windKmh: cw.windspeed });
+    if(tip) text += ' ' + tip;
+  }
+  return text;
+}
+
+function buildHourlyReply(bundle, purpose, yesNo){
+  const { place, data } = bundle;
+  const idx = currentIndex(data);
+  const hourly = data.hourly;
+  const span = 6;
+  const endIdx = Math.min(idx + span, hourly.time.length - 1);
+  if(idx < 0){
+    return reply('hourlyNoAlign', place.name);
+  }
+  let minT = Infinity, maxT = -Infinity, maxRain = 0, maxRainHour = null;
+  for(let i=idx; i<=endIdx; i++){
+    minT = Math.min(minT, hourly.temperature_2m[i]);
+    maxT = Math.max(maxT, hourly.temperature_2m[i]);
+    const p = hourly.precipitation_probability[i];
+    if(p != null && p > maxRain){ maxRain = p; maxRainHour = hourly.time[i]; }
+  }
+  const currentCode = hourly.weathercode[idx];
+  const rainSoon = maxRain >= 30;
+
+  let text = '';
+  if(purpose && yesNo){
+    text += directVerdict(purpose, { rainSoon, tempC: hourly.temperature_2m[idx], windKmh: hourly.windspeed_10m[idx] }) + ' ';
+  }
+
+  text += reply('hourlyIntro', place.name, fmtTemp(minT), fmtTemp(maxT), wcText(currentCode));
+  if(rainSoon && maxRainHour){
+    const hourLabel = new Date(maxRainHour).toLocaleTimeString(getLocale(),{hour:'numeric', hour12:true});
+    text += reply('hourlyRainAt', hourLabel, Math.round(maxRain));
+  } else {
+    text += reply('hourlyRainUnlikely');
+  }
+  if(purpose && !yesNo){
+    const tip = purposeTip(purpose, { rainSoon, tempC: hourly.temperature_2m[idx], windKmh: hourly.windspeed_10m[idx] });
+    if(tip) text += ' ' + tip;
+  }
+  return text;
+}
+
+function buildDailyReply(bundle, purpose, yesNo){
+  const { place, data } = bundle;
+  const d = data.daily;
+  const count = Math.min(5, d.time.length);
+  const todayMax = d.temperature_2m_max[0], todayMin = d.temperature_2m_min[0];
+  const todayCode = d.weathercode[0];
+
+  let warmestIdx = 0;
+  for(let i=1;i<count;i++){ if(d.temperature_2m_max[i] > d.temperature_2m_max[warmestIdx]) warmestIdx = i; }
+
+  const rainyDays = [];
+  for(let i=0;i<count;i++){
+    const prob = d.precipitation_probability_max ? d.precipitation_probability_max[i] : null;
+    if(prob != null && prob >= 40){
+      rainyDays.push(i===0 ? reply('today') : new Date(d.time[i]).toLocaleDateString(getLocale(),{weekday:'long'}));
+    }
+  }
+  const rainSoon = rainyDays.length > 0;
+
+  let text = '';
+  if(purpose && yesNo){
+    text += directVerdict(purpose, { rainSoon, tempC: todayMax, windKmh: null }) + ' ';
+  }
+
+  text += reply('dailyIntro', place.name, fmtTemp(todayMax), fmtTemp(todayMin), wcText(todayCode));
+  const warmestName = warmestIdx===0 ? reply('today') : new Date(d.time[warmestIdx]).toLocaleDateString(getLocale(),{weekday:'long'});
+  if(warmestIdx !== 0){
+    text += reply('dailyWarmest', warmestName, fmtTemp(d.temperature_2m_max[warmestIdx]));
+  }
+  if(rainSoon){
+    text += reply('dailyRainDays', rainyDays.slice(0,3).join(', '));
+  } else {
+    text += reply('dailyNoRain');
+  }
+  if(purpose && !yesNo){
+    const tip = purposeTip(purpose, { rainSoon, tempC: todayMax, windKmh: null });
+    if(tip) text += ' ' + tip;
+  }
+  return text;
+}
+
+function buildReply(bundle, viewType, purpose, yesNo){
+  if(viewType === 'hourly') return buildHourlyReply(bundle, purpose, yesNo);
+  if(viewType === 'daily') return buildDailyReply(bundle, purpose, yesNo);
+  return buildCurrentReply(bundle, purpose, yesNo);
+}
+
+function nonWeatherReply(kind, rawText){
+  if(kind === 'greeting') return reply('greeting');
+  if(kind === 'thanks') return reply('thanks');
+  return reply('fallback');
+}
+
+/* ================= Gemini integration (optional, for natural replies) =================
+   If a key is saved, we hand Gemini the real weather numbers we just fetched
+   plus the user's original question and ask for a short, direct, conversational
+   answer. If the call fails for any reason (no key, network, bad key, quota),
+   we silently fall back to the rule-based reply above — the chat never breaks. */
+
+function summarizeBundleForPrompt(bundle, viewType){
+  const { place, data } = bundle;
+  if(viewType === 'hourly'){
+    const idx = currentIndex(data);
+    const hourly = data.hourly;
+    const span = 6;
+    const endIdx = Math.min(idx + span, hourly.time.length - 1);
+    let minT = Infinity, maxT = -Infinity, maxRain = 0;
+    for(let i=idx; i<=endIdx; i++){
+      minT = Math.min(minT, hourly.temperature_2m[i]);
+      maxT = Math.max(maxT, hourly.temperature_2m[i]);
+      maxRain = Math.max(maxRain, hourly.precipitation_probability[i] ?? 0);
+    }
+    return `Location: ${place.name}. Next few hours: temps ${Math.round(minT)}–${Math.round(maxT)}°C, condition "${wcText(hourly.weathercode[idx])}", peak rain chance ${Math.round(maxRain)}%, wind ~${Math.round(hourly.windspeed_10m[idx])} km/h.`;
+  }
+  if(viewType === 'daily'){
+    const d = data.daily;
+    const count = Math.min(5, d.time.length);
+    const rainDays = [];
+    for(let i=0;i<count;i++){
+      const p = d.precipitation_probability_max ? d.precipitation_probability_max[i] : 0;
+      if(p >= 40) rainDays.push(i===0?'today':new Date(d.time[i]).toLocaleDateString(getLocale(),{weekday:'long'}));
+    }
+    return `Location: ${place.name}. Today: high ${Math.round(d.temperature_2m_max[0])}°C, low ${Math.round(d.temperature_2m_min[0])}°C, condition "${wcText(d.weathercode[0])}". Rain expected on: ${rainDays.length?rainDays.join(', '):'none of the next 5 days'}.`;
+  }
+  const cw = data.current_weather;
+  const idx = currentIndex(data);
+  const humidity = idx>=0 ? data.hourly.relativehumidity_2m[idx] : null;
+  const precipProb = idx>=0 ? data.hourly.precipitation_probability[idx] : null;
+  return `Location: ${place.name}. Right now: ${Math.round(cw.temperature)}°C, condition "${wcText(cw.weathercode)}", humidity ${humidity!=null?Math.round(humidity):'unknown'}%, wind ${Math.round(cw.windspeed)} km/h, chance of rain in the next hour ${precipProb!=null?Math.round(precipProb):'unknown'}%.`;
+}
+
+async function generateGeminiReply(userText, bundle, viewType, purpose){
+  const key = getGeminiKey();
+  if(!key) return null;
+
+  const dataSummary = summarizeBundleForPrompt(bundle, viewType);
+  const langName = GEMINI_LANG_NAME[getLang()] || 'English';
+  const prompt = `You are a friendly, concise weather assistant inside a chat app.
+The user asked: "${userText}"
+${purpose ? `Their underlying intent looks like: ${purpose}.` : ''}
+Real weather data to ground your answer (do not invent numbers beyond this): ${dataSummary}
+
+Reply in 1-3 short, warm, conversational sentences, like a knowledgeable friend, not a forecast report.
+Respond entirely in ${langName}, regardless of the language of the data above.
+If the question implies a yes/no decision (should I / can I / will it / is it going to), START the reply with a direct "Yes," "No," or a clear one-line recommendation, then briefly justify it using the data.
+Do not list every number — mention only what's relevant to their question.
+Do not use markdown, bullet points, or asterisks. Plain text only.`;
+
+  try{
+    const res = await fetch(`${GEMINI_URL_BASE}?key=${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 200 }
+      })
+    });
+    if(!res.ok) return null;
+    const json = await res.json();
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if(!text || !text.trim()) return null;
+    return text.trim();
+  }catch(err){
+    console.error('Gemini call failed, falling back to rule-based reply:', err);
+    return null;
+  }
+}
+
+/** When a Gemini key is set and the rule-based parser isn't confident
+    (couldn't tell if it's weather-related, or is but has no location and
+    no location can be recalled from context), ask Gemini to classify the
+    message itself: is this weather-related, what place/timeframe/intent
+    does it imply, and — if it isn't weather-related at all — what would a
+    natural, GPT-style reply be. This replaces the old hard-coded
+    "I'm mainly built for weather questions" fallback whenever a key is
+    available. On any failure this returns null and the caller falls back
+    to the rule-based behavior, so the chat never breaks. */
+async function generateGeminiIntent(userText, lastLocation){
+  const key = getGeminiKey();
+  if(!key) return null;
+
+  const langName = GEMINI_LANG_NAME[getLang()] || 'English';
+  const prompt = `You are the intent classifier for a friendly weather chat app called WeatherGPT.
+The user's message: "${userText}"
+${lastLocation ? `The last location this conversation discussed was: ${lastLocation}.` : 'No location has been established yet in this conversation.'}
+
+Decide whether this message is about weather, or about something the weather would affect (e.g. watering plants/fields/crops, cycling, travel, an outdoor event, running, hiking, commuting) — even if it's phrased casually, has typos, or doesn't use the word "weather".
+
+Respond with ONLY a raw JSON object, no markdown formatting and no backticks, in exactly this shape:
+{"isWeatherQuery": boolean, "location": string or null, "viewType": "current" or "hourly" or "daily", "purpose": string or null, "yesNo": boolean, "reply": string or null}
+
+Rules:
+- If isWeatherQuery is true: set "location" to the place involved, correcting obvious typos (e.g. "tamota field" implies farming, not a place). If no place is mentioned but a previous location is known, reuse that previous location. Leave "reply" as null.
+- If isWeatherQuery is false: set "location" to null and write a short, warm, natural conversational reply in "reply" — like a helpful person would, not a rigid bot — gently mentioning you're best at weather questions only if it truly fits. Write this reply in ${langName}.
+- "purpose" is a short lowercase word such as "farming", "cycling", "travel", "event", "running", "hiking", "commute", or null if none applies.
+- "yesNo" is true only if the user is asking for a yes/no decision (should I / can I / will it / is it going to / do I need).`;
+
+  try{
+    const res = await fetch(`${GEMINI_URL_BASE}?key=${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 220 }
+      })
+    });
+    if(!res.ok) return null;
+    const json = await res.json();
+    let text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if(!text || !text.trim()) return null;
+    text = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
+    const out = JSON.parse(text);
+    if(out && typeof out === 'object' && !['current','hourly','daily'].includes(out.viewType)){
+      out.viewType = 'current';
+    }
+    return out;
+  }catch(err){
+    console.error('Gemini intent classification failed, falling back to rule-based parsing:', err);
+    return null;
+  }
+}
+
+/* ================= main pipeline ================= */
+async function processQuery(userText, priorMessages){
+  let parsed = parseQuery(userText);
+  const lastLoc = getLastKnownLocation(priorMessages);
+
+  // If the rule-based parser can't confidently tell what's being asked
+  // (not recognized as weather-related, or weather-related but with no
+  // location and nothing to recall from context), let Gemini take a pass
+  // at understanding it naturally — instead of falling straight to a
+  // canned "I'm just a weather bot" reply.
+  const uncertain = parsed.kind !== 'weather' || (parsed.kind === 'weather' && !parsed.location && !lastLoc);
+  if(uncertain && getGeminiKey()){
+    const intent = await generateGeminiIntent(userText, lastLoc);
+    if(intent){
+      if(intent.isWeatherQuery){
+        const rawLoc = intent.location || lastLoc || null;
+        parsed = {
+          kind: 'weather',
+          location: rawLoc ? cleanLocation(rawLoc) : null,
+          viewType: intent.viewType || 'current',
+          purpose: intent.purpose || null,
+          yesNo: !!intent.yesNo
+        };
+      } else if(intent.reply){
+        return { reply: intent.reply, isWeatherQuery:false, location:null, viewType:null };
+      }
+    }
+  }
+
+  if(parsed.kind !== 'weather'){
+    return { reply: nonWeatherReply(parsed.kind, userText), isWeatherQuery:false, location:null, viewType:null };
+  }
+  if(!parsed.location) parsed.location = lastLoc;
+  if(!parsed.location){
+    return { reply: reply('askLocation'), isWeatherQuery:true, location:null, viewType:null };
+  }
+
+  let bundle;
+  try{
+    bundle = await getForecastFor(parsed.location);
+  }catch(err){
+    console.error(err);
+    return { reply: reply('serviceError'), isWeatherQuery:false, location:null, viewType:null };
+  }
+
+  if(!bundle){
+    return { reply: reply('notFound', parsed.location), isWeatherQuery:false, location:null, viewType:null };
+  }
+
+  // Try Gemini first (grounded on the real fetched data); fall back to the
+  // rule-based reply on any failure so the chat is never left hanging.
+  let replyText = null;
+  let viaGemini = false;
+  try{
+    replyText = await generateGeminiReply(userText, bundle, parsed.viewType, parsed.purpose);
+    if(replyText) viaGemini = true;
+  }catch(err){
+    console.error(err);
+  }
+  if(!replyText){
+    replyText = buildReply(bundle, parsed.viewType, parsed.purpose, parsed.yesNo);
+  }
+
+  return { reply: replyText, isWeatherQuery:true, location: parsed.location, viewType: parsed.viewType, placeName: bundle.place.name, viaGemini };
+}
+
+async function handleSend(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+  inputEl.value = '';
+  autoGrow();
+
+  addUserMessage(text);
+  // persist the user message immediately
+  const c = activeChat();
+  const priorMessages = c ? c.messages.slice() : [];
+  if(c){
+    c.messages.push({ role:'user', text });
+    await persistActiveChat();
+  }
+
+  addThinkingBubble();
+  sendBtn.disabled = true;
+  try{
+    const parsed = await processQuery(text, priorMessages);
+    await addAssistantMessage(parsed);
+  }catch(err){
+    console.error(err);
+    addErrorMessage(ui('thinkingError'));
+  }finally{
+    sendBtn.disabled = false;
+  }
+}
+
+sendBtn.addEventListener('click', handleSend);
+inputEl.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    handleSend();
+  }
+});
+function autoGrow(){
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+}
+inputEl.addEventListener('input', autoGrow);
+
+/* ================= speech input ================= */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+let listening = false;
+
+if(SpeechRecognition){
+  recognizer = new SpeechRecognition();
+  recognizer.continuous = false;
+  recognizer.interimResults = false;
+  recognizer.lang = getLocale();
+
+  recognizer.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    inputEl.value = transcript;
+    autoGrow();
+  };
+  recognizer.onend = () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+    hintEl.textContent = ui('hintDefault');
+    if(inputEl.value.trim()) handleSend();
+  };
+  recognizer.onerror = () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+    hintEl.textContent = ui('hintNoCatch');
+  };
+
+  micBtn.addEventListener('click', () => {
+    if(listening){
+      recognizer.stop();
+      return;
+    }
+    recognizer.lang = getLocale();
+    listening = true;
+    micBtn.classList.add('listening');
+    hintEl.textContent = ui('hintListening');
+    recognizer.start();
+  });
+}else{
+  micBtn.addEventListener('click', () => {
+    hintEl.textContent = ui('hintNoSpeech');
+  });
+}
+
+/* ================= weather fetching ================= */
+async function geocodePlace(q){
+  const r = await fetch(GEOCODE_URL + encodeURIComponent(q) + '&count=1');
+  if(!r.ok) throw new Error('geocode failed');
+  const j = await r.json();
+  if(!j.results || !j.results.length) return null;
+  const p = j.results[0];
+  return { name: p.name + (p.admin1 ? ', ' + p.admin1 : ''), country: p.country, latitude: p.latitude, longitude: p.longitude };
+}
+
+async function fetchForecast(lat, lon){
+  const params = new URLSearchParams({
+    latitude: lat, longitude: lon,
+    hourly: 'temperature_2m,relativehumidity_2m,precipitation,precipitation_probability,weathercode,windspeed_10m',
+    daily: 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max',
+    current_weather: 'true',
+    timezone: 'auto'
+  });
+  const r = await fetch(FORECAST_URL + '?' + params.toString());
+  if(!r.ok) throw new Error('forecast failed');
+  return r.json();
+}
+
+async function getForecastFor(locationQuery){
+  const key = locationQuery.toLowerCase();
+  if(forecastCache[key]) return forecastCache[key];
+  const place = await geocodePlace(locationQuery);
+  if(!place) return null;
+  const data = await fetchForecast(place.latitude, place.longitude);
+  const bundle = { place, data };
+  forecastCache[key] = bundle;
+  return bundle;
+}
+
+/* ================= drawer ================= */
+function openScrim(){ scrim.classList.add('open'); drawer.classList.add('open'); }
+function closeDrawer(){ scrim.classList.remove('open'); drawer.classList.remove('open'); }
+scrim.addEventListener('click', closeDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+
+async function openDrawer(locationQuery, viewType){
+  currentDrawerLocation = { query: locationQuery, viewType };
+  openScrim();
+  drawerPlace.textContent = locationQuery;
+  drawerSub.textContent = viewType === 'hourly' ? ui('hourlyForecast') : viewType === 'daily' ? ui('sevenDayOutlook') : ui('rightNow');
+  drawerBody.innerHTML = `<div class="drawer-loading">${ui('loading')}</div>`;
+
+  try{
+    const bundle = await getForecastFor(locationQuery);
+    if(!bundle){
+      drawerBody.innerHTML = `<div class="drawer-error">${ui('drawerNotFound')}</div>`;
+      return;
+    }
+    drawerPlace.textContent = bundle.place.name + (bundle.place.country ? ', ' + bundle.place.country : '');
+    renderDrawerContent(bundle.data, viewType);
+  }catch(err){
+    console.error(err);
+    drawerBody.innerHTML = `<div class="drawer-error">${ui('drawerUnavailable')}</div>`;
+  }
+}
+
+function renderDrawerContent(data, viewType){
+  if(viewType === 'hourly'){
+    renderHourly(data);
+  }else if(viewType === 'daily'){
+    renderDaily(data);
+  }else{
+    renderCurrent(data);
+  }
+}
+
+function renderCurrent(data){
+  const cw = data.current_weather;
+  const idx = currentIndex(data);
+  const humidity = idx>=0 ? data.hourly.relativehumidity_2m[idx] : null;
+  const precip = idx>=0 ? data.hourly.precipitation[idx] : null;
+  const feels = feelsLike(cw.temperature, cw.windspeed);
+  drawerBody.innerHTML = `
+    <div class="hero-current">
+      <div>
+        <div class="temp">${fmtTemp(cw.temperature)}</div>
+        <div class="desc">${wcTextCap(cw.weathercode)}</div>
+      </div>
+      <div class="ic">${wcIcon(cw.weathercode)}</div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="v">${fmtTemp(feels)}</div><div class="l">${ui('metricFeelsLike')}</div></div>
+      <div class="metric"><div class="v">${humidity!=null ? Math.round(humidity)+'%' : '--'}</div><div class="l">${ui('metricHumidity')}</div></div>
+      <div class="metric"><div class="v">${fmtWind(cw.windspeed)}</div><div class="l">${ui('metricWind')}</div></div>
+      <div class="metric"><div class="v">${fmtPrecip(precip||0)}</div><div class="l">${ui('metricPrecip')}</div></div>
+    </div>
+  `;
+}
+
+function renderHourly(data){
+  const hourly = data.hourly;
+  const now = new Date(data.current_weather.time);
+  const dayStart = new Date(now); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+
+  let rows = '';
+  for(let i=0;i<hourly.time.length;i++){
+    const t = new Date(hourly.time[i]);
+    if(t >= dayStart && t < dayEnd && t >= now){
+      const label = t.toLocaleTimeString(getLocale(),{hour:'numeric', hour12:true});
+      rows += `
+        <div class="row-item">
+          <div class="left"><div class="t">${label}</div><div>${wcIcon(hourly.weathercode[i])}</div></div>
+          <div style="text-align:right">
+            <div class="val">${fmtTemp(hourly.temperature_2m[i])}</div>
+            <div class="sub">${fmtWind(hourly.windspeed_10m[i])} · ${fmtPrecip(hourly.precipitation[i])}</div>
+          </div>
+        </div>`;
+    }
+  }
+  drawerBody.innerHTML = rows || `<div class="drawer-error">${ui('drawerNoHours')}</div>`;
+}
+
+function renderDaily(data){
+  const d = data.daily;
+  let rows = '';
+  for(let i=0;i<d.time.length;i++){
+    const dayName = i===0 ? reply('today').charAt(0).toUpperCase() + reply('today').slice(1) : new Date(d.time[i]).toLocaleDateString(getLocale(),{weekday:'long'});
+    rows += `
+      <div class="day-row">
+        <div class="name">${dayName}</div>
+        <div>${wcIcon(d.weathercode[i])}</div>
+        <div style="text-align:right">
+          <span class="val">${fmtTemp(d.temperature_2m_max[i])}</span>
+          <span style="color:var(--ink-dim)"> / ${fmtTemp(d.temperature_2m_min[i])}</span>
+        </div>
+      </div>`;
+  }
+  drawerBody.innerHTML = rows;
+}
+
+function reRenderDrawerIfOpen(){
+  if(!drawer.classList.contains('open') || !currentDrawerLocation) return;
+  const key = currentDrawerLocation.query.toLowerCase();
+  const bundle = forecastCache[key];
+  if(bundle) renderDrawerContent(bundle.data, currentDrawerLocation.viewType);
+}
+
+unitMetricBtn.addEventListener('click', () => {
+  units = 'metric';
+  unitMetricBtn.classList.add('active');
+  unitImperialBtn.classList.remove('active');
+  reRenderDrawerIfOpen();
+});
+unitImperialBtn.addEventListener('click', () => {
+  units = 'imperial';
+  unitImperialBtn.classList.add('active');
+  unitMetricBtn.classList.remove('active');
+  reRenderDrawerIfOpen();
+});
+
+/* ================= boot ================= */
+applyLanguage();
+initChats().then(applyLanguage);
+</script>
+</body>
+</html>
