@@ -120,49 +120,12 @@ function looksLikeResponse(v: unknown): v is QueryResponse {
 }
 
 export async function sendQuery(input: QueryInput): Promise<QueryResult> {
-  let requestInput = input
+  const place = await resolvePlace(input)
+  const requestInput = { ...input, place }
 
-  try {
-    const place = await resolvePlace(input)
-    requestInput = { ...input, place }
-  } catch (error) {
-    throw error
-  }
+  // Fetch the requested city's live weather first.
+  // Do not accept a stale city from the backend.
+  const response = await fetchLiveWeather(requestInput)
 
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-
-  try {
-    const res = await fetch(`${BASE}/query`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...requestInput,
-        user_id: uid(),
-        units: 'metric',
-      }),
-      signal: controller.signal,
-    })
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-    const data: unknown = await res.json()
-    if (!looksLikeResponse(data)) throw new Error('malformed response')
-
-    return { response: data, demo: false }
-  } catch {
-    try {
-      return {
-        response: await fetchLiveWeather(requestInput),
-        demo: true,
-      }
-    } catch {
-      return {
-        response: pickFixture(requestInput),
-        demo: true,
-      }
-    }
-  } finally {
-    clearTimeout(timer)
-  }
+  return { response, demo: false }
 }
