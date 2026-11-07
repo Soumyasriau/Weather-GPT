@@ -38,34 +38,61 @@ const WEATHER_LABELS: Record<number, string> = {
 }
 
 async function resolvePlace(input: QueryInput): Promise<Place> {
-  const match = input.query.match(/\b(?:in|at|for)\s+([^?.!]+)/i)
-  if (!match) return input.place
+  let query = input.query.trim();
 
-  const city = match[1].split(',')[0].trim()
-  if (!city) return input.place
+  query = query
+    .replace(/^(what is|what's|tell me|show me|give me)\s+/i, '')
+    .replace(/^(the\s+)?(current\s+)?weather\s+(in|at|for)\s+/i, '')
+    .replace(/^(weather|temperature|forecast)\s+(in|at|for)\s+/i, '')
+    .replace(/\s+(weather|temperature|forecast)$/i, '')
+    .replace(/[?.!]+$/, '')
+    .trim();
+
+  const match = input.query.match(/\b(?:in|at|for)\s+([^?.!]+)/i);
+  let city = match
+    ? match[1].split(',')[0].trim()
+    : query.split(',')[0].trim();
+
+  const aliases: Record<string, string> = {
+    vizag: 'Visakhapatnam',
+    hyd: 'Hyderabad',
+    bombay: 'Mumbai',
+    madras: 'Chennai',
+    calcutta: 'Kolkata',
+  };
+
+  city = aliases[city.toLowerCase()] ?? city;
+
+  if (!city) return input.place;
 
   const params = new URLSearchParams({
     name: city,
-    count: '1',
+    count: '10',
     language: 'en',
     format: 'json',
-  })
+  });
 
   const response = await fetch(
     `https://geocoding-api.open-meteo.com/v1/search?${params}`
-  )
-  if (!response.ok) throw new Error('City search failed')
+  );
 
-  const data = await response.json()
-  const result = data.results?.[0]
-  if (!result) throw new Error(`City not found: ${city}`)
+  if (!response.ok) throw new Error('City search failed');
+
+  const data = await response.json();
+  const results = data.results ?? [];
+
+  const result = results.find(
+    (item: any) => item.name.toLowerCase() === city.toLowerCase()
+  ) ?? results[0];
+
+  if (!result) throw new Error(`City not found: ${city}`);
 
   return {
     name: result.name,
     lat: result.latitude,
     lon: result.longitude,
     tz: result.timezone,
-  }
+  };
 }
 
 async function fetchLiveWeather(input: QueryInput): Promise<QueryResponse> {
@@ -129,3 +156,4 @@ export async function sendQuery(input: QueryInput): Promise<QueryResult> {
 
   return { response, demo: false }
 }
+
