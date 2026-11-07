@@ -4,14 +4,14 @@ An AI-powered weather application that provides real-time weather information fo
 
 ## 🚀 Live Demo
 
-**[Open Soumya Weather GPT](https://weather-gpt-np32.vercel.app/)**
+**[Open Soumya Weather GPT](https://soumya-weather-gpt.vercel.app/)**
 
 ## ✨ Features
 
 - 🌍 Search weather information for different cities.
 - 🌡️ View current temperature and weather conditions.
 - ☁️ Get live weather updates using weather APIs.
-- 📍 Supports location-based city searches.
+- 📍 Supports city-based searches.
 - 📱 Responsive and user-friendly interface.
 - ⚡ Fast and lightweight application.
 
@@ -25,8 +25,6 @@ An AI-powered weather application that provides real-time weather information fo
 - **Version Control:** Git & GitHub
 
 ## 💻 Getting Started
-
-Follow these steps to run the project locally.
 
 ### 1. Clone the repository
 
@@ -64,7 +62,7 @@ npm run build
 
 This project is deployed using **Vercel**.
 
-Live Application: https://weather-gpt-np32.vercel.app/
+**Live Application:** https://soumya-weather-gpt.vercel.app/
 
 ## 🎯 Project Objective
 
