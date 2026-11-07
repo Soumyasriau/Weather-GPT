@@ -64,7 +64,7 @@
     align-items: stretch;
     background:
       radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 32%),
-      linear-gradient(180deg, #edf6ff 0%, #f4f7fb 100%);
+      linear-gradient(180deg, #12172b 0%, #0b0e1c 100%);
   }
 
   .chat-panel {
